@@ -8,9 +8,9 @@ This project is a N-Body molecular dynamic implementation using the `c` programm
 
 The project can be run using a serial version, `OpenMPI` version, `OpenMP` version and a `OpenMPI + OpenMP` hybrid version and enable it using compilation flags.
 
-# Project folder architecture
+## Project folder architecture
 
-The location of the `main.c` file is in the root folder `./` along with the `CMakeList.txt`, the project is split in several modules, the source code is inside of `./src` folder while the header files are included in `./build`. The project includes some example data for testing the outputs, these examples are inside the `./examples` folder and the reference data is inside `./reference` folder.
+The location of the `main.c` file is in the root folder `./` along with the `CMakeLists.txt`, the project is split in several modules, the source code is inside of `./src` folder while the header files are included in `./include`. The project includes some example data for testing the outputs, these examples are inside the `./examples` folder and the reference data is inside `./reference` folder.
 
 When you run the `cmake -S <source-fodler-path> -B <build-folder-path>`, will create a `./build` folder with the binary files, the executables are created inside `./build/bin` folder.
 
@@ -29,3 +29,19 @@ When you run the `cmake -S <source-fodler-path> -B <build-folder-path>`, will cr
 ├── examples/
 └── reference/
 ```
+
+## Compile the project
+
+The project can be compiled using the `cmake` tool. The `CMakeLists.txt` is in the root folder. You can create the build folder running the following command in the root folder:
+
+```
+cmake -S . -B ./build
+```
+
+Then to build the executables we can run:
+
+```
+cmake --build ./build
+```
+
+And then, the executable is inside of `./build/bin` folder.
