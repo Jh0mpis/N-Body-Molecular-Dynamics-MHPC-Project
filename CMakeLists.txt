@@ -2,6 +2,11 @@
 cmake_minimum_required(VERSION 3.16)
 project(CProject LANGUAGES C)
 
+# set policy to silence warnings about timestamps of downloaded files. review occasionally if it may be set to NEW
+if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 OLD)
+endif()
+
 # Set the build type
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
