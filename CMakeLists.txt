@@ -42,3 +42,25 @@ target_compile_options(main.x PRIVATE
 
 # Add linker flags (equivalent to LDLIBS)
 target_link_libraries(main.x PRIVATE m) # `-lm` links the math library
+
+
+option(ENABLE_TESTING "Enable building unit tests" OFF)
+if(ENABLE_TESTING)
+  enable_testing()
+  enable_language(CXX)
+
+  # Added temporarily so we can make some first testings
+  add_library(mdlib tests/utils.c tests/verlet.c)
+
+  set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
+  include(GTest)
+  add_executable(test_verlet tests/test_verlet.cpp)
+  target_include_directories(test_verlet PRIVATE ${CMAKE_SOURCE_DIR}/src)
+  target_link_libraries(test_verlet PRIVATE GTest::GTestMain GTest::GTest mdlib)
+  add_test(NAME Verlet COMMAND test_verlet)
+
+  add_executable(test_utils tests/test_utils.cpp)
+  target_include_directories(test_utils PRIVATE ${CMAKE_SOURCE_DIR}/src)
+  target_link_libraries(test_utils PRIVATE GTest::GTestMain GTest::GTest mdlib)
+  add_test(NAME Utils COMMAND test_utils)
+endif()
