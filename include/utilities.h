@@ -1,9 +1,8 @@
-#ifndef UTIL_H
-#define UTIL_H
-#include "constants.h"
-#include <math.h>
+#ifndef UTILITIES_H
+#define UTILITIES_H
+
+double wallclock();
 void azzero(double *d, const int n);
 double pbc(double x, const double boxby2);
-void ekin(mdsys_t *sys);
-void velverlet(mdsys_t *sys);
-#endif  /*UTIL_H */ 
+
+#endif /* UTILITIES_H */

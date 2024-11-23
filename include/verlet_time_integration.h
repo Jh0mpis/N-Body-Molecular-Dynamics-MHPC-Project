@@ -1,5 +1,8 @@
-#ifndef VERLET_H
-#define VERLET_H
-/* helper function: get current time in seconds since epoch */
-double wallclock();
-#endif  /*VERLET_H*/
+#ifndef VERLET_TIME_INTEGRATION_H
+#define VERLET_TIME_INTEGRATION_H
+
+#include "mdsys.h"
+
+void velverlet(mdsys_t *sys);
+
+#endif /* VERLET_TIME_INTEGRATION_H */

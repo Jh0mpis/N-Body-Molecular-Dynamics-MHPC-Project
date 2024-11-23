@@ -1,49 +1,55 @@
-/*
- * This file contains the functions necessary for computing the forces 
- */
-#ifndef FORCECOMPUTE_H
-#define FORCECOMPUTE_H
-#include"../include/constants.h"
 #include <math.h>
-#include "../include/utilities.h"
-/* compute forces */
-void force(mdsys_t *sys)
-{
-    double r,ffac;
-    double rx,ry,rz;
-    int i,j;
+#include "constants.h"
+#include "mdsys.h"
+#include "utilities.h"
+#include "force_compute.h"
 
-    /* zero energy and forces */
-    sys->epot=0.0;
-    azzero(sys->fx,sys->natoms);
-    azzero(sys->fy,sys->natoms);
-    azzero(sys->fz,sys->natoms);
+void force(mdsys_t *sys) {
+    double r, ffac;
+    double rx, ry, rz;
+    int i, j;
 
-    for(i=0; i < (sys->natoms); ++i) {
-        for(j=0; j < (sys->natoms); ++j) {
+    /* Zero energy and forces */
+    sys->epot = 0.0;
+    azzero(sys->fx, sys->natoms);
+    azzero(sys->fy, sys->natoms);
+    azzero(sys->fz, sys->natoms);
 
-            /* particles have no interactions with themselves */
-            if (i==j) continue;
+    for (i = 0; i < sys->natoms; ++i) {
+        for (j = 0; j < sys->natoms; ++j) {
 
-            /* get distance between particle i and j */
-            rx=pbc(sys->rx[i] - sys->rx[j], 0.5*sys->box);
-            ry=pbc(sys->ry[i] - sys->ry[j], 0.5*sys->box);
-            rz=pbc(sys->rz[i] - sys->rz[j], 0.5*sys->box);
-            r = sqrt(rx*rx + ry*ry + rz*rz);
+            /* Skip self-interaction */
+            if (i == j) continue;
 
-            /* compute force and energy if within cutoff */
+            /* Minimum image convention */
+            rx = pbc(sys->rx[i] - sys->rx[j], 0.5 * sys->box);
+            ry = pbc(sys->ry[i] - sys->ry[j], 0.5 * sys->box);
+            rz = pbc(sys->rz[i] - sys->rz[j], 0.5 * sys->box);
+            r = sqrt(rx * rx + ry * ry + rz * rz);
+
+            /* Compute force and energy if within cutoff */
             if (r < sys->rcut) {
-                ffac = -4.0*sys->epsilon*(-12.0*pow(sys->sigma/r,12.0)/r
-                                         +6*pow(sys->sigma/r,6.0)/r);
+                ffac = -4.0 * sys->epsilon * (-12.0 * pow(sys->sigma / r, 12.0) / r
+                                              + 6.0 * pow(sys->sigma / r, 6.0) / r);
 
-                sys->epot += 0.5*4.0*sys->epsilon*(pow(sys->sigma/r,12.0)
-                                               -pow(sys->sigma/r,6.0));
+                sys->epot += 0.5 * 4.0 * sys->epsilon * (pow(sys->sigma / r, 12.0)
+                                                         - pow(sys->sigma / r, 6.0));
 
-                sys->fx[i] += rx/r*ffac;
-                sys->fy[i] += ry/r*ffac;
-                sys->fz[i] += rz/r*ffac;
+                sys->fx[i] += rx / r * ffac;
+                sys->fy[i] += ry / r * ffac;
+                sys->fz[i] += rz / r * ffac;
             }
         }
     }
 }
-#endif /*FORCECOMPUTE_H*/
+
+void ekin(mdsys_t *sys) {
+    sys->ekin = 0.0;
+    for (int i = 0; i < sys->natoms; ++i) {
+        sys->ekin += 0.5 * mvsq2e * sys->mass *
+                     (sys->vx[i] * sys->vx[i] +
+                      sys->vy[i] * sys->vy[i] +
+                      sys->vz[i] * sys->vz[i]);
+    }
+    sys->temp = 2.0 * sys->ekin / (3.0 * sys->natoms - 3.0) / kboltz;
+}

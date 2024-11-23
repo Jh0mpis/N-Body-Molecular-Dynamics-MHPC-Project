@@ -1,33 +1,26 @@
-#include "../include/input.h"
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #include <ctype.h>
-/* helper function: read a line and then return
-   the first string with whitespace stripped off */
-int get_a_line(FILE *fp, char *buf)
-{
+#include "input.h"
+
+int get_a_line(FILE *fp, char *buf) {
     char tmp[BLEN], *ptr;
 
-    /* read a line and cut of comments and blanks */
-    if (fgets(tmp,BLEN,fp)) {
+    if (fgets(tmp, BLEN, fp)) {
         int i;
 
-        ptr=strchr(tmp,'#');
-        if (ptr) *ptr= '\0';
-        i=strlen(tmp); --i;
-        while(isspace(tmp[i])) {
-            tmp[i]='\0';
-            --i;
+        ptr = strchr(tmp, '#');
+        if (ptr) *ptr = '\0';
+        i = strlen(tmp) - 1;
+        while (i >= 0 && isspace(tmp[i])) {
+            tmp[i--] = '\0';
         }
-        ptr=tmp;
-        while(isspace(*ptr)) {++ptr;}
-        i=strlen(ptr);
-        strcpy(buf,tmp);
+        ptr = tmp;
+        while (*ptr && isspace(*ptr)) { ++ptr; }
+        strcpy(buf, ptr);
         return 0;
     } else {
-        perror("problem reading input");
+        perror("Problem reading input");
         return -1;
     }
-    return 0;
-};
+}

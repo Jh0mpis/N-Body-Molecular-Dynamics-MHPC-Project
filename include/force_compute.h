@@ -1,6 +1,9 @@
-#ifndef FORCE_H
-#define FORCE_H
-#include"../include/constants.h"
-#include <math.h>
+#ifndef FORCE_COMPUTE_H
+#define FORCE_COMPUTE_H
+
+#include "mdsys.h"
+
 void force(mdsys_t *sys);
-#endif  /*FORCE_H */ 
+void ekin(mdsys_t *sys);
+
+#endif /* FORCE_COMPUTE_H */
