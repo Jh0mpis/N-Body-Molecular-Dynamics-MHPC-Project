@@ -21,10 +21,26 @@ When you run the `cmake -S <source-fodler-path> -B <build-folder-path>`, will cr
 ├── README.md
 ├── .gitignore
 ├── Report.md
+├── GTest.cmake
 ├── include/
+│   ├── constants.h
+│   ├── force_compute.h
+│   ├── verlet_time_integration.h
+│   ├── utilities.h
+│   ├── input.h
+│   ├── output.h
+│   └── cleanup.h
 ├── src/
+│   ├── constants.c
+│   ├── force_compute.c
+│   ├── verlet_time_integration.c
+│   ├── utilities.c
+│   ├── input.c
+│   ├── output.c
+│   └── cleanup.c
 ├── build/
-│   ├── bin
+│   └── bin/
+│       └── main.x
 ├── test/
 ├── examples/
 └── reference/
@@ -45,3 +61,8 @@ cmake --build ./build
 ```
 
 And then, the executable is inside of `./build/bin` folder.
+
+## Run the project
+
+
+## Testing the project
