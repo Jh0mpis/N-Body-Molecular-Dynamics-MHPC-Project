@@ -1,9 +1,10 @@
 #include <math.h>
-#include "constants.h"
-#include "mdsys.h"
-#include "utilities.h"
-#include "force_compute.h"
+#include "../include/constants.h"     // constants definitions header file
+#include "../include/mdsys.h"         // System struct definition header file
+#include "../include/utilities.h"     // timing, zero matrix and pbc functions header file
+#include "../include/force_compute.h" // Computing force and kinetic energy functions file
 
+// Computing the interaction force for each particle
 void force(mdsys_t *sys) {
     double r, ffac;
     double rx, ry, rz;
@@ -43,7 +44,9 @@ void force(mdsys_t *sys) {
     }
 }
 
+// Kinetic energy computation
 void ekin(mdsys_t *sys) {
+
     sys->ekin = 0.0;
     for (int i = 0; i < sys->natoms; ++i) {
         sys->ekin += 0.5 * mvsq2e * sys->mass *

@@ -1,6 +1,6 @@
-#include "verlet_time_integration.h"
-#include "constants.h"
-#include "force_compute.h"
+#include "../include/verlet_time_integration.h"   // velverlet function header file
+#include "../include/constants.h"                 // constants definition header file
+#include "../include/force_compute.h"             // Force and kinetic energy functions header file
 
 void velverlet(mdsys_t *sys) {
     /* First part: propagate velocities by half and positions by full step */

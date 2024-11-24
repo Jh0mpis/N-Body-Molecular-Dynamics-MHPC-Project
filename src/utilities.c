@@ -1,6 +1,5 @@
 #include <sys/time.h>
-#include <stdlib.h>
-#include "utilities.h"
+#include "../include/utilities.h"   // wallclock, pbc and azzero function header file
 
 double wallclock() {
     struct timeval t;
