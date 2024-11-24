@@ -31,20 +31,32 @@ set_target_properties(main.x PROPERTIES
 )
 
 # Add compiler flags (equivalent to CFLAGS)
-target_compile_options(main.x PRIVATE
+option(OPTIMIZATION_FLAGS "Enable optimization flags" ON)
+
+if(OPTIMIZATION_FLAGS)
+  target_compile_options(main.x PRIVATE
     -Wall
-    -g
     -O3
     -ffast-math
     -fomit-frame-pointer
-    -DLJMD_VERSION=1.0
-)
+    -ffp-contract=fast
+    -march=native
+  )
+else(OPTIMIZATION_FLAGS)
+  target_compile_options(main.x PRIVATE
+    -Wall
+    -g
+  )
+endif(OPTIMIZATION_FLAGS)
+
+# Add macro definitions
+target_compile_definitions(main.x PRIVATE LJMD_VERSION=1.0)
 
 # Add linker flags (equivalent to LDLIBS)
 target_link_libraries(main.x PRIVATE m) # `-lm` links the math library
 
 
-option(ENABLE_TESTING "Enable building unit tests" OFF)
+option(ENABLE_TESTING "Enable building unit tests" ON)
 if(ENABLE_TESTING)
   enable_testing()
   enable_language(CXX)
