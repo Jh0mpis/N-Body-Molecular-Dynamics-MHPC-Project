@@ -3,6 +3,7 @@
 
 // Output function for data
 void output(mdsys_t *sys, FILE *erg, FILE *traj) {
+    printf("Outputting:");
     printf("%8d %20.8f %20.8f %20.8f %20.8f\n",
            sys->nfi, sys->temp, sys->ekin, sys->epot, sys->ekin + sys->epot);
     fprintf(erg, "%8d %20.8f %20.8f %20.8f %20.8f\n",
