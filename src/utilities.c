@@ -12,9 +12,3 @@ void azzero(double *d, const int n) {
         d[i] = 0.0;
     }
 }
-
-double pbc(double x, const double boxby2) {
-    while (x >  boxby2) x -= 2.0 * boxby2;
-    while (x < -boxby2) x += 2.0 * boxby2;
-    return x;
-}

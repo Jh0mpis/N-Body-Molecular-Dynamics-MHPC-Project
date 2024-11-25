@@ -4,6 +4,12 @@
 #include "../include/utilities.h"     // timing, zero matrix and pbc functions header file
 #include "../include/force_compute.h" // Computing force and kinetic energy functions file
 
+static inline double pbc(double x, const double boxby2) {
+    while (x >  boxby2) x -= 2.0 * boxby2;
+    while (x < -boxby2) x += 2.0 * boxby2;
+    return x;
+}
+
 // Computing the interaction force for each particle
 void force(mdsys_t *sys) {
     double r, ffac;
