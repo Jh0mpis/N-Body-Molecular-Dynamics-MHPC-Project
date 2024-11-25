@@ -5,5 +5,6 @@
 
 // updating velocities and positions
 void velverlet(mdsys_t *sys);
+void velverlet_omp(mdsys_t *sys);
 
 #endif /* VERLET_TIME_INTEGRATION_H */
