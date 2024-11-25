@@ -8,13 +8,13 @@
 
 
 // Principal loop function
-void run_omp(mdsys_t *sys, FILE **erg, FILE **traj, const double initial_time, const int nprint) {
+void run(mdsys_t *sys, FILE **erg, FILE **traj, const double initial_time, const int nprint) {
     double t_start;
 
     /* Initialize forces and energies */
     sys->nfi = 0;
-    force_omp(sys);
-    ekin_omp(sys);
+    force(sys);
+    ekin(sys);
 
     // Printing the latency time
     printf("Startup time: %10.3fs\n", wallclock() - initial_time);
@@ -25,16 +25,17 @@ void run_omp(mdsys_t *sys, FILE **erg, FILE **traj, const double initial_time, c
     /* Reset timer */
     t_start = wallclock();
 
+    printf("Starting the main loop");
     /* Main MD loop */
     for (sys->nfi = 1; sys->nfi <= sys->nsteps; ++sys->nfi) {
-
+        printf("simulation step %d", sys->nfi);
         /* Write output, if requested */
         if ((sys->nfi % nprint) == 0)
             output(sys, *erg, *traj);
 
         /* Propagate system and recompute energies */
-        velverlet_omp(sys);
-        ekin_omp(sys);
+        velverlet(sys);
+        ekin(sys);
     }
 
     /* Clean up: close files, free memory */
@@ -42,7 +43,7 @@ void run_omp(mdsys_t *sys, FILE **erg, FILE **traj, const double initial_time, c
 }
 
 // Principal loop function
-void run(mdsys_t *sys, FILE **erg, FILE **traj, const double initial_time, const int nprint){
+void old_run(mdsys_t *sys, FILE **erg, FILE **traj, const double initial_time, const int nprint){
     double t_start;
   
     /* Initialize forces and energies */

@@ -55,7 +55,7 @@ else(OPTIMIZATION_FLAGS)
 endif(OPTIMIZATION_FLAGS)
 
 # Add macro definitions
-target_compile_definitions(main.x PRIVATE LJMD_VERSION=1.0)
+target_compile_definitions(main.x PRIVATE LJMD_VERSION=1.4)
 
 # **Link OpenMP and add OpenMP compile options**
 target_link_libraries(main.x PRIVATE m OpenMP::OpenMP_C)
