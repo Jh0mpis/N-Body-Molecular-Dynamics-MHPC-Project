@@ -6,6 +6,5 @@ double wallclock();
 // Fill a matrix with zeros
 void azzero(double *d, const int n);
 // Get the periodic boundary conditions
-/*double pbc(double x, const double boxby2);*/
-
+double my_pow(double base, int exp);
 #endif /* UTILITIES_H */
