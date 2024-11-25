@@ -7,5 +7,10 @@
 *~
 *.~
 
+#VSCode folder
+.vscode/
+.history/
+examples/
+
 # Folder 
 /build*
