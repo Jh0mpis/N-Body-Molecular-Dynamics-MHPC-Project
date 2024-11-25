@@ -12,3 +12,18 @@ void azzero(double *d, const int n) {
         d[i] = 0.0;
     }
 }
+
+double my_pow(double base, int exp)
+{
+    double result = 1;
+    for (;;)
+    {
+        if (exp & 1)
+            result *= base;
+        exp >>= 1;
+        if (!exp)
+            break;
+        base *= base;
+    }
+    return result;
+}
