@@ -11,7 +11,7 @@ static inline double pbc(double x, const double boxby2) {
     return x;
 }
 
-void force_omp(mdsys_t *sys) {
+void force(mdsys_t *sys) {
     int i, j;
     int natoms = sys->natoms;
 
@@ -105,7 +105,7 @@ void force_omp(mdsys_t *sys) {
 }
 
 
-void ekin_omp(mdsys_t *sys) {
+void ekin(mdsys_t *sys) {
     double ekin_local = 0.0; // Local variable for reduction
 
     #pragma omp parallel for reduction(+:ekin_local)
@@ -124,7 +124,7 @@ void ekin_omp(mdsys_t *sys) {
 
 
 // Computing the interaction force for each particle
-void force(mdsys_t *sys) {
+void old_force(mdsys_t *sys) {
     double r, ffac;
     double rx, ry, rz;
     int i, j;
@@ -164,7 +164,7 @@ void force(mdsys_t *sys) {
 }
 
 // Kinetic energy computation
-void ekin(mdsys_t *sys) {
+void old_ekin(mdsys_t *sys) {
 
     sys->ekin = 0.0;
     for (int i = 0; i < sys->natoms; ++i) {
