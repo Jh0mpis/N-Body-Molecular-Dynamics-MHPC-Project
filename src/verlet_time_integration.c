@@ -3,7 +3,7 @@
 #include "../include/constants.h"                 // constants definition header file
 #include "../include/force_compute.h"             // Force and kinetic energy functions header file
 
-void velverlet_omp(mdsys_t *sys) {
+void velverlet(mdsys_t *sys) {
     /* First part: propagate velocities by half and positions by full step */
     #pragma omp parallel for
     for (int i = 0; i < sys->natoms; ++i) {
@@ -17,7 +17,7 @@ void velverlet_omp(mdsys_t *sys) {
     }
 
     /* Compute forces and potential energy */
-    force_omp(sys);
+    force(sys);
 
     /* Second part: propagate velocities by another half step */
     #pragma omp parallel for
@@ -28,7 +28,7 @@ void velverlet_omp(mdsys_t *sys) {
     }
 }
 
-void velverlet(mdsys_t *sys) {
+void old_velverlet(mdsys_t *sys) {
     /* First part: propagate velocities by half and positions by full step */
     for (int i = 0; i < sys->natoms; ++i) {
         sys->vx[i] += 0.5 * sys->dt / mvsq2e * sys->fx[i] / sys->mass;
