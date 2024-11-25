@@ -9,4 +9,4 @@ void run(mdsys_t *sys, FILE **erg, FILE **traj, const double initial_time, const
 // updating velocities and positions
 static void velverlet(mdsys_t *sys);
 
-#endif // !SIMULATE
+#endif /*SIMULATE*/

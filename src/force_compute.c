@@ -12,18 +12,23 @@ static inline double pbc(double x, const double boxby2) {
 
 // Computing the interaction force for each particle
 void force(mdsys_t *sys) {
-    double r, ffac;
+    double ffac;
+    double rcsp, rsq; 
     double rx, ry, rz;
     int i, j;
 
     /* Zero energy and forces */
     sys->epot = 0.0;
+
     azzero(sys->fx, sys->natoms);
     azzero(sys->fy, sys->natoms);
     azzero(sys->fz, sys->natoms);
 
-    for (i = 0; i < sys->natoms; ++i) {
-        for (j = 0; j < sys->natoms; ++j) {
+    const double c6 = 4.0 * sys->epsilon * exp(6 * log(sys->sigma));
+    const double c12 = 4.0 * sys->epsilon * exp(12 * log(sys->sigma));
+    const double rcsq = sys->rcut * sys->rcut; 
+    for (i = 0; i < (sys->natoms)-1; ++i) {
+        for (j = i+1; j < (sys->natoms); ++j) {
 
             /* Skip self-interaction */
             if (i == j) continue;
@@ -32,19 +37,20 @@ void force(mdsys_t *sys) {
             rx = pbc(sys->rx[i] - sys->rx[j], 0.5 * sys->box);
             ry = pbc(sys->ry[i] - sys->ry[j], 0.5 * sys->box);
             rz = pbc(sys->rz[i] - sys->rz[j], 0.5 * sys->box);
-            r = sqrt(rx * rx + ry * ry + rz * rz);
 
-            /* Compute force and energy if within cutoff */
-            if (r < sys->rcut) {
-                ffac = -4.0 * sys->epsilon * (-12.0 * pow(sys->sigma / r, 12.0) / r
-                                              + 6.0 * pow(sys->sigma / r, 6.0) / r);
+            rsq = rx * rx + ry * ry + rz * rz;
 
-                sys->epot += 0.5 * 4.0 * sys->epsilon * (pow(sys->sigma / r, 12.0)
-                                                         - pow(sys->sigma / r, 6.0));
+            if (rsq < rcsq) {
+                double r6, rinv; 
+                rinv = 1.0 / rsq;
+                r6 = rinv * rinv * rinv; 
 
-                sys->fx[i] += rx / r * ffac;
-                sys->fy[i] += ry / r * ffac;
-                sys->fz[i] += rz / r * ffac;
+                ffac = (12.0 * c12 * r6 - 6.0 * c6) * r6 * rinv;               
+                sys->epot += r6 * (c12 * r6 - c6); 
+
+                sys->fx[i] += rx * ffac; sys->fx[j] -= rx  * ffac;    
+                sys->fy[i] += ry  * ffac; sys->fy[j] -= ry  * ffac;   
+                sys->fz[i] += rz  * ffac; sys->fz[j] -= rz  * ffac;
             }
         }
     }
