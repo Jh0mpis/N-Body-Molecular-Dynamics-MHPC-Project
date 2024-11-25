@@ -18,9 +18,10 @@ void velverlet(mdsys_t *sys) {
     force(sys);
 
     /* Second part: propagate velocities by another half step */
+    const double denom = 1.0 / sys->dt / mvsq2e; 
     for (int i = 0; i < sys->natoms; ++i) {
-        sys->vx[i] += 0.5 * sys->dt / mvsq2e * sys->fx[i] / sys->mass;
-        sys->vy[i] += 0.5 * sys->dt / mvsq2e * sys->fy[i] / sys->mass;
-        sys->vz[i] += 0.5 * sys->dt / mvsq2e * sys->fz[i] / sys->mass;
+        sys->vx[i] += 0.5 * denom * sys->fx[i] / sys->mass;
+        sys->vy[i] += 0.5 * denom * sys->fy[i] / sys->mass;
+        sys->vz[i] += 0.5 * denom * sys->fz[i] / sys->mass;
     }
 }
