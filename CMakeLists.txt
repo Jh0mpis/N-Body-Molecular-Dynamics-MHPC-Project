@@ -33,7 +33,8 @@ set_target_properties(main.x PROPERTIES
 # Add compiler flags (equivalent to CFLAGS)
 option(OPTIMIZATION_FLAGS "Enable optimization flags" ON)
 
-if(OPTIMIZATION_FLAGS)
+if(OPTIMIZATION_FLAGS) 
+  message(STATUS "USING OPTIMIZATION FLAGS")
   target_compile_options(main.x PRIVATE
     -Wall
     -O3
@@ -43,6 +44,7 @@ if(OPTIMIZATION_FLAGS)
     -march=native
   )
 else(OPTIMIZATION_FLAGS)
+  message(STATUS "NON USING OPTIMIZATION FLAGS")
   target_compile_options(main.x PRIVATE
     -Wall
     -g
