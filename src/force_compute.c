@@ -12,8 +12,8 @@ static inline double pbc(double x, const double boxby2) {
 
 // Computing the interaction force for each particle
 void force(mdsys_t *sys) {
-    double r, ffac;
-    long double rcsp = 0 , rsq = 0 ; 
+    double ffac;
+    double rcsp, rsq; 
     double rx, ry, rz;
     int i, j;
 
