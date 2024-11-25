@@ -8,3 +8,5 @@ The first step in the code optimization we took was to refactor the code. We sep
 2. Incoprating Newton's third law of motion in the `force` function has increased the speed of the code by $\times 5$. 
 
 3. Defining `sys->dt / mvsq2e` outside of the loop improve the performance by `0.01s`. 
+
+4. After the code optimization by removing contants outisde of the loops and using the `const` keyword the code performance went up from `0.4 s` to `0.3 s`.  
