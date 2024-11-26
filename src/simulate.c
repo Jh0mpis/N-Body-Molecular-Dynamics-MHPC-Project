@@ -13,6 +13,7 @@ void run(mdsys_t *sys, FILE **erg, FILE **traj, const double initial_time, const
 
     /* Initialize forces and energies */
     sys->nfi = 0;
+
     force(sys);
     ekin(sys);
 
@@ -25,10 +26,8 @@ void run(mdsys_t *sys, FILE **erg, FILE **traj, const double initial_time, const
     /* Reset timer */
     t_start = wallclock();
 
-    printf("Starting the main loop");
     /* Main MD loop */
     for (sys->nfi = 1; sys->nfi <= sys->nsteps; ++sys->nfi) {
-        printf("simulation step %d", sys->nfi);
         /* Write output, if requested */
         if ((sys->nfi % nprint) == 0)
             output(sys, *erg, *traj);
@@ -36,40 +35,6 @@ void run(mdsys_t *sys, FILE **erg, FILE **traj, const double initial_time, const
         /* Propagate system and recompute energies */
         velverlet(sys);
         ekin(sys);
-    }
-
-    /* Clean up: close files, free memory */
-    printf("Simulation Done. Run time: %10.10fs\n", wallclock() - t_start);
-}
-
-// Principal loop function
-void old_run(mdsys_t *sys, FILE **erg, FILE **traj, const double initial_time, const int nprint){
-    double t_start;
-  
-    /* Initialize forces and energies */
-    sys->nfi = 0;
-    force(&(*sys));
-    ekin(&(*sys));
-
-    // Printing the latency time
-    printf("Startup time: %10.3fs\n", wallclock() - initial_time);
-    printf("Starting simulation with %d atoms for %d steps.\n", sys->natoms, sys->nsteps);
-    printf("     NFI            TEMP            EKIN                 EPOT              ETOT\n");
-    output(&(*sys), *erg, *traj);
-
-    /* Reset timer */
-    t_start = wallclock();
-
-    /* Main MD loop */
-    for (sys->nfi = 1; sys->nfi <= sys->nsteps; ++sys->nfi) {
-
-        /* Write output, if requested */
-        if ((sys->nfi % nprint) == 0)
-            output(&(*sys), *erg, *traj);
-
-        /* Propagate system and recompute energies */
-        velverlet(&(*sys));
-        ekin(&(*sys));
     }
 
     /* Clean up: close files, free memory */

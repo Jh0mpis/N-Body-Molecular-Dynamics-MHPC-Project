@@ -6,7 +6,6 @@
 
 // Initialize the system and runs the simulation
 void run(mdsys_t *sys, FILE **erg, FILE **traj, const double initial_time, const int nprint);
-void old_run(mdsys_t *sys, FILE **erg, FILE **traj, const double initial_time, const int nprint);
 // updating velocities and positions
 static void velverlet(mdsys_t *sys);
 
