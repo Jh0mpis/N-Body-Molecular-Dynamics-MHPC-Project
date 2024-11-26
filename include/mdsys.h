@@ -5,10 +5,11 @@
 typedef struct {
     double dt, mass, epsilon, sigma, box, rcut;
     double ekin, epot, temp;
-    int natoms, nfi, nsteps;
+    int natoms, nfi, nsteps, nthreads;
     double *rx, *ry, *rz;
     double *vx, *vy, *vz;
     double *fx, *fy, *fz;
+    double *cx, *cy, *cz;
     
 } mdsys_t;
 
