@@ -12,10 +12,9 @@ static inline double pbc(double x, const double boxby2) {
 
 // Computing the interaction force for each particle
 void force(mdsys_t *sys) {
-    double ffac;
-    double rcsp, rsq; 
+    double register ffac;
     double rx, ry, rz;
-    int i, j;
+    unsigned int i, j;
 
     /* Zero energy and forces */
     sys->epot = 0.0;
@@ -38,9 +37,8 @@ void force(mdsys_t *sys) {
             rx = pbc(sys->rx[i] - sys->rx[j], 0.5 * sys->box);
             ry = pbc(sys->ry[i] - sys->ry[j], 0.5 * sys->box);
             rz = pbc(sys->rz[i] - sys->rz[j], 0.5 * sys->box);
-
+            double register rsq; 
             rsq = rx * rx + ry * ry + rz * rz;
-
             if (rsq < rcsq) {
                 double register r6, rinv; 
                 rinv = 1.0 / rsq;
@@ -49,7 +47,7 @@ void force(mdsys_t *sys) {
                 ffac = (12.0 * c12 * r6 - 6.0 * c6) * r6 * rinv;               
                 sys->epot += r6 * (c12 * r6 - c6); 
 
-                sys->fx[i] += rx  *  ffac; sys->fx[j] -= rx * ffac;    
+                sys->fx[i] += rx  * ffac; sys->fx[j] -= rx * ffac;    
                 sys->fy[i] += ry  * ffac; sys->fy[j] -= ry  * ffac;   
                 sys->fz[i] += rz  * ffac; sys->fz[j] -= rz  * ffac;
             }
