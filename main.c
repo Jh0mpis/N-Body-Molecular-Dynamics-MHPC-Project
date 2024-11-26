@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
     double t_start;
 
 
-    /*t_start = wallclock();*/
+    t_start = wallclock();
 
     // Initialize the system from input files
     const int nprint = read_input_files(&sys, &erg, &traj);
