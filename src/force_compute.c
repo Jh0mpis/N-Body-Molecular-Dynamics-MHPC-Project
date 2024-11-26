@@ -26,6 +26,7 @@ void force(mdsys_t *sys) {
 
     const double c6 = 4.0 * sys->epsilon * exp(6 * log(sys->sigma));
     const double c12 = 4.0 * sys->epsilon * exp(12 * log(sys->sigma));
+
     const double rcsq = sys->rcut * sys->rcut; 
     for (i = 0; i < (sys->natoms)-1; ++i) {
         for (j = i+1; j < (sys->natoms); ++j) {
@@ -48,7 +49,7 @@ void force(mdsys_t *sys) {
                 ffac = (12.0 * c12 * r6 - 6.0 * c6) * r6 * rinv;               
                 sys->epot += r6 * (c12 * r6 - c6); 
 
-                sys->fx[i] += rx * ffac; sys->fx[j] -= rx  * ffac;    
+                sys->fx[i] += rx  *  ffac; sys->fx[j] -= rx * ffac;    
                 sys->fy[i] += ry  * ffac; sys->fy[j] -= ry  * ffac;   
                 sys->fz[i] += rz  * ffac; sys->fz[j] -= rz  * ffac;
             }
