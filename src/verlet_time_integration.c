@@ -5,7 +5,7 @@
 void velverlet(mdsys_t *sys) {
     /* First part: propagate velocities by half and positions by full step */
     const double register denom = 0.5 * sys->dt / (mvsq2e*sys->mass); 
-    for (int i = 0; i < sys->natoms; ++i) {
+    for (unsigned int i = 0; i < sys->natoms; ++i) {
         sys->vx[i] +=  denom * sys->fx[i];
         sys->vy[i] +=  denom * sys->fy[i];
         sys->vz[i] +=  denom * sys->fz[i];
@@ -19,7 +19,7 @@ void velverlet(mdsys_t *sys) {
     force(sys);
 
     /* Second part: propagate velocities by another half step */
-    for (int i = 0; i < sys->natoms; ++i) {
+    for (unsigned int i = 0; i < sys->natoms; ++i) {
         sys->vx[i] +=  denom * sys->fx[i];
         sys->vy[i] +=  denom * sys->fy[i];
         sys->vz[i] +=  denom * sys->fz[i];

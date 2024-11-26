@@ -8,7 +8,7 @@ typedef struct {
     double *rx, *ry, *rz;
     double *vx, *vy, *vz;
     double *fx, *fy, *fz;
-    int natoms, nfi, nsteps;
+    unsigned int natoms, nfi, nsteps;
 } mdsys_t;
 
 #endif /* MDSYS_H */

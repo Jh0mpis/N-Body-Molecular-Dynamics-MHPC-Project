@@ -12,7 +12,7 @@ static int get_a_line(FILE *fp, char *buf) {
     char tmp[BLEN], *ptr;
 
     if (fgets(tmp, BLEN, fp)) {
-        int i;
+        unsigned int i;
 
         ptr = strchr(tmp, '#');
         if (ptr) *ptr = '\0';
@@ -75,10 +75,10 @@ int read_input_files(mdsys_t *sys, FILE **erg, FILE **traj){
     /* Read restart */
     fp = fopen(restfile, "r");
     if (fp) {
-        for (int i = 0; i < sys->natoms; ++i) {
+        for (unsigned int i = 0; i < sys->natoms; ++i) {
             fscanf(fp, "%lf%lf%lf", sys->rx + i, sys->ry + i, sys->rz + i);
         }
-        for (int i = 0; i < sys->natoms; ++i) {
+        for (unsigned int i = 0; i < sys->natoms; ++i) {
             fscanf(fp, "%lf%lf%lf", sys->vx + i, sys->vy + i, sys->vz + i);
         }
         fclose(fp);
