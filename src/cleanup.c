@@ -4,9 +4,17 @@
 // Deallocate and close the file
 void clean(mdsys_t *sys, FILE **erg, FILE **traj){
   
-    // Closing the files
-    fclose(*erg);
-    fclose(*traj);
+    #ifdef ENABLE_OPENMPI
+      if(!sys->rank){
+        // Closing the files
+        fclose(*erg);
+        fclose(*traj);
+      }
+    #else
+      // Closing the files
+      fclose(*erg);
+      fclose(*traj);
+    #endif
 
     // Deallocating the arrays
     free(sys->rx);
