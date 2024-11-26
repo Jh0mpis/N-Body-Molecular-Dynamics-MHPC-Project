@@ -18,5 +18,8 @@ void clean(mdsys_t *sys, FILE **erg, FILE **traj){
     free(sys->fx);
     free(sys->fy);
     free(sys->fz);
+    free(sys->cx);
+    free(sys->cy);
+    free(sys->cz);
 
 }
