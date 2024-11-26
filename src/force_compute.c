@@ -24,10 +24,10 @@ void force(mdsys_t *sys) {
     azzero(sys->fy, sys->natoms);
     azzero(sys->fz, sys->natoms);
     const double sigma6 = sys->sigma * sys->sigma * sys->sigma * sys->sigma * sys->sigma * sys->sigma;
-    const double c6 = 4.0 * sys->epsilon * sigma6;
-    const double c12 = 4.0 * sys->epsilon * sigma6 * sigma6;
+    const double register c6 = 4.0 * sys->epsilon * sigma6;
+    const double register c12 = 4.0 * sys->epsilon * sigma6 * sigma6;
 
-    const double rcsq = sys->rcut * sys->rcut; 
+    double register rcsq = sys->rcut * sys->rcut; 
     for (i = 0; i < (sys->natoms)-1; ++i) {
         for (j = i+1; j < (sys->natoms); ++j) {
 
@@ -42,7 +42,7 @@ void force(mdsys_t *sys) {
             rsq = rx * rx + ry * ry + rz * rz;
 
             if (rsq < rcsq) {
-                double r6, rinv; 
+                double register r6, rinv; 
                 rinv = 1.0 / rsq;
                 r6 = rinv * rinv * rinv; 
 
