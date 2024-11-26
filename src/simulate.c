@@ -17,7 +17,7 @@ void run(mdsys_t *sys, FILE **erg, FILE **traj, const double initial_time, const
     #ifdef ENABLE_OPENMPI
       if(!sys->rank){
         // Printing the latency time
-        printf("Startup time: %10.3fs\n", wallclock() - initial_time);
+        printf("Startup time: %10.10fs\n", wallclock() - initial_time);
         printf("Starting simulation with %d atoms for %d steps.\n", sys->natoms, sys->nsteps);
         printf("     NFI            TEMP            EKIN                 EPOT              ETOT\n");
         output(sys, *erg, *traj);
