@@ -11,26 +11,21 @@ static inline double pbc(double x, const double boxby2) {
     return x;
 }
 
-#include <math.h>
-#include <omp.h>
-#include "../include/constants.h"
-#include "../include/mdsys.h"
-#include "../include/utilities.h"
-
 void force(mdsys_t *sys) {
-    int natoms = sys->natoms;
+    const int natoms = sys->natoms;
     int nthreads;
-
-    /* Zero the total forces and potential energy */
-    sys->epot = 0.0;
+    double register ffac;
+    double rx, ry, rz;
+    int i, j;
 
     nthreads = sys->nthreads;
 
-    /* Ensure the force arrays are allocated accordingly */
     azzero(sys->cx, natoms * nthreads);
     azzero(sys->cy, natoms * nthreads);
     azzero(sys->cz, natoms * nthreads);
 
+    const double register rcsq = sys->rcut * sys->rcut;
+    
     double epot_local = 0.0;
 
     #ifdef ENABLE_OMP
@@ -57,17 +52,20 @@ void force(mdsys_t *sys) {
             double ry1 = sys->ry[ii];
             double rz1 = sys->rz[ii];
             for (int j = ii + 1; j < natoms; ++j) {
-                double rx, ry, rz, rsq, ffac;
+                double rx, ry, rz, ffac;
+                double register rsq; 
 
                 /* Minimum image convention */
                 rx = pbc(rx1 - sys->rx[j], 0.5 * sys->box);
                 ry = pbc(ry1 - sys->ry[j], 0.5 * sys->box);
                 rz = pbc(rz1 - sys->rz[j], 0.5 * sys->box);
+
                 rsq = rx * rx + ry * ry + rz * rz;
 
                 /* Compute forces and potential energy */
-                if (rsq < sys->rcut * sys->rcut) {
-                    double rsqinv = 1.0 / rsq;
+                if (rsq < rcsq) {
+
+                    double register rsqinv = 1.0 / rsq;
                     double sr2 = sys->sigma * sys->sigma * rsqinv;
                     double sr6 = sr2 * sr2 * sr2;
                     double sr12 = sr6 * sr6;
@@ -114,6 +112,9 @@ void force(mdsys_t *sys) {
     }
 
      // Update global forces and epot
+    #ifdef ENABLE_OMP
+    #pragma omp parallel for
+    #endif
     for (int i = 0; i < natoms; ++i) {
         sys->fx[i] = sys->cx[i];
         sys->fy[i] = sys->cy[i];

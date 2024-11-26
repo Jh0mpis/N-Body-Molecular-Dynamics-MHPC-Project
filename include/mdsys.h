@@ -10,7 +10,6 @@ typedef struct {
     double *vx, *vy, *vz;
     double *fx, *fy, *fz;
     double *cx, *cy, *cz;
-    
 } mdsys_t;
 
 #endif /* MDSYS_H */

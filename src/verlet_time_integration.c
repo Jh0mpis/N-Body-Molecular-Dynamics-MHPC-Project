@@ -5,13 +5,14 @@
 
 void velverlet(mdsys_t *sys) {
     /* First part: propagate velocities by half and positions by full step */
+    const double register denom = 0.5 * sys->dt / (mvsq2e*sys->mass); 
     #ifdef ENABLE_OMP
     #pragma omp parallel for
     #endif
-    for (int i = 0; i < sys->natoms; ++i) {
-        sys->vx[i] += 0.5 * sys->dt / mvsq2e * sys->fx[i] / sys->mass;
-        sys->vy[i] += 0.5 * sys->dt / mvsq2e * sys->fy[i] / sys->mass;
-        sys->vz[i] += 0.5 * sys->dt / mvsq2e * sys->fz[i] / sys->mass;
+    for (unsigned int i = 0; i < sys->natoms; ++i) {
+        sys->vx[i] +=  denom * sys->fx[i];
+        sys->vy[i] +=  denom * sys->fy[i];
+        sys->vz[i] +=  denom * sys->fz[i];
 
         sys->rx[i] += sys->dt * sys->vx[i];
         sys->ry[i] += sys->dt * sys->vy[i];
@@ -25,10 +26,10 @@ void velverlet(mdsys_t *sys) {
     #ifdef ENABLE_OMP
     #pragma omp parallel for
     #endif
-    for (int i = 0; i < sys->natoms; ++i) {
-        sys->vx[i] += 0.5 * sys->dt / mvsq2e * sys->fx[i] / sys->mass;
-        sys->vy[i] += 0.5 * sys->dt / mvsq2e * sys->fy[i] / sys->mass;
-        sys->vz[i] += 0.5 * sys->dt / mvsq2e * sys->fz[i] / sys->mass;
+    for (unsigned int i = 0; i < sys->natoms; ++i) {
+        sys->vx[i] +=  denom * sys->fx[i];
+        sys->vy[i] +=  denom * sys->fy[i];
+        sys->vz[i] +=  denom * sys->fz[i];
     }
 }
 
