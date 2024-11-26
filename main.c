@@ -19,6 +19,8 @@ int main(int argc, char **argv) {
 
     printf("LJMD version %3.3f\n", LJMD_VERSION);
 
+     printf("Using %d threads\n", omp_get_num_threads());
+
     t_start = wallclock();
     
     // Initialize the system from input files

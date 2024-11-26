@@ -63,7 +63,7 @@ int read_input_files(mdsys_t *sys, FILE **erg, FILE **traj){
 
     #ifdef ENABLE_OMP
     sys->nthreads = omp_get_num_threads();
-    printf("Running with OMP enabled using %d threads\n", sys->nthreads);
+    printf("Running with OMP enabled using %d threads\n", omp_get_num_threads());
     #else
     sys->nthreads = 1;
     printf("Running without OMP, using only %d thread\n", sys->nthreads);
