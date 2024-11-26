@@ -23,9 +23,9 @@ void force(mdsys_t *sys) {
     azzero(sys->fx, sys->natoms);
     azzero(sys->fy, sys->natoms);
     azzero(sys->fz, sys->natoms);
-
-    const double c6 = 4.0 * sys->epsilon * exp(6 * log(sys->sigma));
-    const double c12 = 4.0 * sys->epsilon * exp(12 * log(sys->sigma));
+    const double sigma6 = sys->sigma * sys->sigma * sys->sigma * sys->sigma * sys->sigma * sys->sigma;
+    const double c6 = 4.0 * sys->epsilon * sigma6;
+    const double c12 = 4.0 * sys->epsilon * sigma6 * sigma6;
 
     const double rcsq = sys->rcut * sys->rcut; 
     for (i = 0; i < (sys->natoms)-1; ++i) {
