@@ -59,7 +59,12 @@ int read_input_files(mdsys_t *sys, FILE **erg, FILE **traj){
     if (get_a_line(stdin, line)) return -1;
     sys->dt = atof(line);
     if (get_a_line(stdin, line)) return -1;
-    
+
+    #ifdef _OPENMP
+    sys->nthreads = omp_get_num_threads();
+    #else
+    sys->nthreads = 1;
+    #endif
 
     /* Allocate memory */
     sys->rx = (double *)malloc(sys->natoms * sizeof(double));
@@ -71,6 +76,9 @@ int read_input_files(mdsys_t *sys, FILE **erg, FILE **traj){
     sys->fx = (double *)malloc(sys->natoms * sizeof(double));
     sys->fy = (double *)malloc(sys->natoms * sizeof(double));
     sys->fz = (double *)malloc(sys->natoms * sizeof(double));
+    sys->cx = (double *)malloc(sys->nthreads * sys->natoms * sizeof(double));
+    sys->cy = (double *)malloc(sys->nthreads * sys->natoms * sizeof(double));
+    sys->cz = (double *)malloc(sys->nthreads * sys->natoms * sizeof(double));
 
     /* Read restart */
     fp = fopen(restfile, "r");
