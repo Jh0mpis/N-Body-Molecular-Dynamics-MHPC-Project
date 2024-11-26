@@ -57,9 +57,13 @@ endif(OPTIMIZATION_FLAGS)
 # Add macro definitions
 target_compile_definitions(main.x PRIVATE LJMD_VERSION=1.4)
 
+# Add compiler flags (equivalent to CFLAGS)
+option(ENABLE_OMP "Enable OpenMP flag" ON)
 # **Link OpenMP and add OpenMP compile options**
-target_link_libraries(main.x PRIVATE m OpenMP::OpenMP_C)
-target_compile_options(main.x PRIVATE ${OpenMP_C_FLAGS})
+if(ENABLE_OMP)
+  target_link_libraries(main.x PRIVATE m OpenMP::OpenMP_C)
+  target_compile_options(main.x PRIVATE ${OpenMP_C_FLAGS})
+endif(ENABLE_OMP)
 
 # Add linker flags (equivalent to LDLIBS)
 target_link_libraries(main.x PRIVATE m) # `-lm` links the math library
