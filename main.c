@@ -11,15 +11,34 @@
 #include "include/utilities.h"                // wallclock, azzero, pbc
 #include "include/cleanup.h"                  // Free the allocated stuff
 #include "include/simulate.h"                 // Run the simulation 
+#ifdef ENABLE_OPENMPI
+  #include <mpi.h>
+#endif
 
 int main(int argc, char **argv) {
-    FILE *traj, *erg;
+    
     mdsys_t sys;
+    #ifdef ENABLE_OPENMPI
+      MPI_Init(&argc, &argv);
+      int rank, nps;
+
+      MPI_Comm_size(MPI_COMM_WORLD, &nps);
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+      sys.rank = rank;
+      sys.nps = nps;
+      
+      if(!sys.rank){
+        printf("Running with OpenMPI using %d process\n", sys.nps);
+        printf("LJMD version %3.3f\n", LJMD_VERSION);
+      }
+    #endif
+
+    FILE *traj, *erg;
     double t_start;
 
-    printf("LJMD version %3.3f\n", LJMD_VERSION);
 
-    t_start = wallclock();
+    /*t_start = wallclock();*/
 
     // Initialize the system from input files
     const int nprint = read_input_files(&sys, &erg, &traj);
@@ -30,6 +49,10 @@ int main(int argc, char **argv) {
 
     // Deallocate
     clean(&sys, &erg, &traj);
+
+  #ifdef ENABLE_OPENMPI
+    MPI_Finalize();
+  #endif
 
     return 0;
 }
