@@ -12,7 +12,7 @@ static inline double pbc(double x, const double boxby2) {
 
 // Computing the interaction force for each particle
 void force(mdsys_t *sys) {
-      double rsq, ffac;
+      double register ffac;
       double rx, ry, rz;
       int init, stop;
 
@@ -21,11 +21,6 @@ void force(mdsys_t *sys) {
       double temp_fx[sys->natoms], temp_fy[sys->natoms], temp_fz[sys->natoms];
     #endif
 
-      const double c6 = 4.0 * sys->epsilon * exp(6 * log(sys->sigma));
-      const double c12 = 4.0 * sys->epsilon * exp(12 * log(sys->sigma));
-      const double rcsq = sys->rcut * sys->rcut; 
-
-      /* Zero energy and forces */
       sys->epot = 0.0;
 
     #ifdef ENABLE_OPENMPI
@@ -49,18 +44,24 @@ void force(mdsys_t *sys) {
       azzero(sys->fz, sys->natoms);
     #endif
 
-      for (int i = init; i < stop; ++i) {
+    const double sigma6 = sys->sigma * sys->sigma * sys->sigma * sys->sigma * sys->sigma * sys->sigma;
+    const double register c6 = 4.0 * sys->epsilon * sigma6;
+    const double register c12 = 4.0 * sys->epsilon * sigma6 * sigma6;
+
+    double register rcsq = sys->rcut * sys->rcut; 
+
+    for (int i = init; i < stop; ++i) {
         for (int j = i+1; j < (sys->natoms); ++j) {
             
             /* Minimum image convention */
             rx = pbc(sys->rx[i] - sys->rx[j], 0.5 * sys->box);
             ry = pbc(sys->ry[i] - sys->ry[j], 0.5 * sys->box);
             rz = pbc(sys->rz[i] - sys->rz[j], 0.5 * sys->box);
+            double register rsq; 
 
             rsq = rx * rx + ry * ry + rz * rz;
-
             if (rsq < rcsq) {
-                double r6, rinv; 
+                double register r6, rinv; 
                 rinv = 1.0 / rsq;
                 r6 = rinv * rinv * rinv; 
 

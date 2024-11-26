@@ -15,7 +15,7 @@ static int get_a_line(FILE *fp, char *buf) {
     char tmp[BLEN], *ptr;
 
     if (fgets(tmp, BLEN, fp)) {
-        int i;
+        unsigned int i;
 
         ptr = strchr(tmp, '#');
         if (ptr) *ptr = '\0';
