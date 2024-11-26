@@ -16,14 +16,11 @@ int main(int argc, char **argv) {
     FILE *traj, *erg;
     mdsys_t sys;
     double t_start;
-    int nthreads;
-
-    nthreads = omp_get_max_threads();
 
     printf("LJMD version %3.3f\n", LJMD_VERSION);
 
     t_start = wallclock();
-
+    
     // Initialize the system from input files
     const int nprint = read_input_files(&sys, &erg, &traj);
     if (nprint <= 0 ) return 1;
