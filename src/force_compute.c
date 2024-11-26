@@ -11,97 +11,117 @@ static inline double pbc(double x, const double boxby2) {
     return x;
 }
 
+#include <math.h>
+#include <omp.h>
+#include "../include/constants.h"
+#include "../include/mdsys.h"
+#include "../include/utilities.h"
+
 void force(mdsys_t *sys) {
-    int i, j;
     int natoms = sys->natoms;
-
-    /* Zero energy and forces */
-    sys->epot = 0.0;
-    azzero(sys->fx, natoms);
-    azzero(sys->fy, natoms);
-    azzero(sys->fz, natoms);
-
-    double *epot_thread;
-    double **fx_thread, **fy_thread, **fz_thread;
-
     int nthreads;
 
-    #pragma omp parallel
-    {
-        /* Obtain the actual number of threads */
-        #pragma omp single
-        {
-            nthreads = omp_get_num_threads();
+    /* Zero the total forces and potential energy */
+    sys->epot = 0.0;
 
-            epot_thread = (double *)calloc(nthreads, sizeof(double));
-            fx_thread = (double **)malloc(nthreads * sizeof(double *));
-            fy_thread = (double **)malloc(nthreads * sizeof(double *));
-            fz_thread = (double **)malloc(nthreads * sizeof(double *));
-            for (int t = 0; t < nthreads; t++) {
-                fx_thread[t] = (double *)calloc(natoms, sizeof(double));
-                fy_thread[t] = (double *)calloc(natoms, sizeof(double));
-                fz_thread[t] = (double *)calloc(natoms, sizeof(double));
-            }
-        }
+    nthreads = sys->nthreads;
 
-        int tid = omp_get_thread_num();
-        double epot_local = 0.0;
-        double r, ffac;
-        double rx, ry, rz;
+    /* Ensure the force arrays are allocated accordingly */
+    azzero(sys->cx, natoms * nthreads);
+    azzero(sys->cy, natoms * nthreads);
+    azzero(sys->cz, natoms * nthreads);
 
-        #pragma omp for schedule(dynamic)
-        for (i = 0; i < natoms - 1; ++i) {
-            for (j = i + 1; j < natoms; ++j) {
+    double epot_local = 0.0;
+
+    #ifdef _OPENMP
+    #pragma omp parallel num_threads(nthreads)
+    #endif
+    {   
+        int tid = 0;
+        #ifdef _OPENMP
+        tid = omp_get_thread_num();
+        #endif
+
+        double *cx = sys->cx + tid * natoms;
+        double *cy = sys->cy + tid * natoms;
+        double *cz = sys->cz + tid * natoms;
+
+        /* Each thread processes a subset of particles */
+        double epot_thread = 0.0;
+
+        int stride = nthreads;
+        for (int i = 0; i < natoms - 1; i += stride) {
+            int ii = i + tid;
+            if (ii >= (sys->natoms -1)) break; //error: break statement used with OpenMP for loop
+            double rx1 = sys->rx[ii];
+            double ry1 = sys->ry[ii];
+            double rz1 = sys->rz[ii];
+            for (int j = ii + 1; j < natoms; ++j) {
+                double rx, ry, rz, rsq, ffac;
 
                 /* Minimum image convention */
-                rx = pbc(sys->rx[i] - sys->rx[j], 0.5 * sys->box);
-                ry = pbc(sys->ry[i] - sys->ry[j], 0.5 * sys->box);
-                rz = pbc(sys->rz[i] - sys->rz[j], 0.5 * sys->box);
-                r = sqrt(rx * rx + ry * ry + rz * rz);
+                rx = pbc(rx1 - sys->rx[j], 0.5 * sys->box);
+                ry = pbc(ry1 - sys->ry[j], 0.5 * sys->box);
+                rz = pbc(rz1 - sys->rz[j], 0.5 * sys->box);
+                rsq = rx * rx + ry * ry + rz * rz;
 
-                /* Compute force and energy if within cutoff */
-                if (r < sys->rcut) {
-                    double r6 = pow(sys->sigma / r, 6.0);
-                    double r12 = r6 * r6;
+                /* Compute forces and potential energy */
+                if (rsq < sys->rcut * sys->rcut) {
+                    double rsqinv = 1.0 / rsq;
+                    double sr2 = sys->sigma * sys->sigma * rsqinv;
+                    double sr6 = sr2 * sr2 * sr2;
+                    double sr12 = sr6 * sr6;
                     double epsilon4 = 4.0 * sys->epsilon;
 
-                    /* Potential energy */
-                    epot_local += epsilon4 * (r12 - r6);
+                    /* Accumulate potential energy */
+                    #ifdef _OPENMP
+                    #pragma omp atomic
+                    #endif
+                    epot_local += epsilon4 * (sr12 - sr6);
 
-                    /* Force factor */
-                    ffac = epsilon4 * (-12.0 * r12 + 6.0 * r6) / (r * r);
+                    /* Compute force factor */
+                    ffac = epsilon4 * (12.0 * sr12 - 6.0 * sr6) * (rsqinv);
 
-                    /* Forces: Newton's third law */
-                    fx_thread[tid][i] += rx * ffac;
-                    fy_thread[tid][i] += ry * ffac;
-                    fz_thread[tid][i] += rz * ffac;
+                    /* Apply forces */
+                    cx[i] += rx * ffac;
+                    cy[i] += ry * ffac;
+                    cz[i] += rz * ffac;
 
-                    fx_thread[tid][j] -= rx * ffac;
-                    fy_thread[tid][j] -= ry * ffac;
-                    fz_thread[tid][j] -= rz * ffac;
+                    cx[j] -= rx * ffac;
+                    cy[j] -= ry * ffac;
+                    cz[j] -= rz * ffac;
                 }
             }
         }
 
-        epot_thread[tid] = epot_local;
+        
+        /* Sum forces from all threads */
+        #ifdef _OPENMP
+        #pragma omp barrier
+        #endif
+        int chunk_size = (natoms + nthreads - 1) / nthreads;
+        int start = tid * chunk_size;
+        int end = (start + chunk_size > natoms) ? natoms : start + chunk_size;
+
+        for (int t = 1; t < nthreads; ++t) {
+            int offset = t * natoms;
+            for (int i = start; i < end; ++i) {
+                sys->cx[i] += sys->cx[offset + i];
+                sys->cy[i] += sys->cy[offset + i];
+                sys->cz[i] += sys->cz[offset + i];
+            }
+        }   
     }
 
-    /* Sum up contributions from all threads */
-    for (int t = 0; t < nthreads; t++) {
-        sys->epot += epot_thread[t];
-        for (i = 0; i < natoms; ++i) {
-            sys->fx[i] += fx_thread[t][i];
-            sys->fy[i] += fy_thread[t][i];
-            sys->fz[i] += fz_thread[t][i];
-        }
-        free(fx_thread[t]);
-        free(fy_thread[t]);
-        free(fz_thread[t]);
+     // Update global forces and epot
+    for (int i = 0; i < natoms; ++i) {
+        sys->fx[i] = sys->cx[i];
+        sys->fy[i] = sys->cy[i];
+        sys->fz[i] = sys->cz[i];
     }
-    free(fx_thread);
-    free(fy_thread);
-    free(fz_thread);
-    free(epot_thread);
+
+    /* Assign the accumulated potential energy */
+    sys->epot = epot_local;
 }
 
 
@@ -121,57 +141,3 @@ void ekin(mdsys_t *sys) {
     sys->temp = 2.0 * sys->ekin / (3.0 * sys->natoms - 3.0) / kboltz;
 }
 
-
-
-// Computing the interaction force for each particle
-void old_force(mdsys_t *sys) {
-    double r, ffac;
-    double rx, ry, rz;
-    int i, j;
-
-    /* Zero energy and forces */
-    sys->epot = 0.0;
-    azzero(sys->fx, sys->natoms);
-    azzero(sys->fy, sys->natoms);
-    azzero(sys->fz, sys->natoms);
-
-    for (i = 0; i < sys->natoms; ++i) {
-        for (j = 0; j < sys->natoms; ++j) {
-
-            /* Skip self-interaction */
-            if (i == j) continue;
-
-            /* Minimum image convention */
-            rx = pbc(sys->rx[i] - sys->rx[j], 0.5 * sys->box);
-            ry = pbc(sys->ry[i] - sys->ry[j], 0.5 * sys->box);
-            rz = pbc(sys->rz[i] - sys->rz[j], 0.5 * sys->box);
-            r = sqrt(rx * rx + ry * ry + rz * rz);
-
-            /* Compute force and energy if within cutoff */
-            if (r < sys->rcut) {
-                ffac = -4.0 * sys->epsilon * (-12.0 * pow(sys->sigma / r, 12.0) / r
-                                              + 6.0 * pow(sys->sigma / r, 6.0) / r);
-
-                sys->epot += 0.5 * 4.0 * sys->epsilon * (pow(sys->sigma / r, 12.0)
-                                                         - pow(sys->sigma / r, 6.0));
-
-                sys->fx[i] += rx / r * ffac;
-                sys->fy[i] += ry / r * ffac;
-                sys->fz[i] += rz / r * ffac;
-            }
-        }
-    }
-}
-
-// Kinetic energy computation
-void old_ekin(mdsys_t *sys) {
-
-    sys->ekin = 0.0;
-    for (int i = 0; i < sys->natoms; ++i) {
-        sys->ekin += 0.5 * mvsq2e * sys->mass *
-                     (sys->vx[i] * sys->vx[i] +
-                      sys->vy[i] * sys->vy[i] +
-                      sys->vz[i] * sys->vz[i]);
-    }
-    sys->temp = 2.0 * sys->ekin / (3.0 * sys->natoms - 3.0) / kboltz;
-}
