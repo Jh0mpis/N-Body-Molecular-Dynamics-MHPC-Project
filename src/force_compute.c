@@ -3,6 +3,7 @@
 #include "../include/mdsys.h"         // System struct definition header file
 #include "../include/utilities.h"     // timing, zero matrix and pbc functions header file
 #include "../include/force_compute.h" // Computing force and kinetic energy functions file
+
 #ifdef ENABLE_OPENMPI
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,8 +46,6 @@ static inline double pbc(double x, const double boxby2) {
       for (int i = init; i < stop; ++i) {
         for (int j = i+1; j < (sys->natoms); ++j) {
             
-            if(i == j) continue;
-
             /* Minimum image convention */
             rx = pbc(sys->rx[i] - sys->rx[j], 0.5 * sys->box);
             ry = pbc(sys->ry[i] - sys->ry[j], 0.5 * sys->box);
@@ -73,12 +72,9 @@ static inline double pbc(double x, const double boxby2) {
             }
         }
       }
-      /*printf("epot: %5.5f\n", epot);*/
 
-      /*printf("size: %d, %d\n", (int) (sizeof(temp_fx)/sizeof(double)), sys->rank);*/
       MPI_Reduce(&epot, &(sys->epot), 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
-      /*printf("size: %d, %d\n", (int) (sizeof(temp_fx)/sizeof(double)), sys->rank);*/
       MPI_Reduce(temp_fx, sys->fx, sys->natoms, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
       MPI_Reduce(temp_fy, sys->fy, sys->natoms, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
       MPI_Reduce(temp_fz, sys->fz, sys->natoms, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
