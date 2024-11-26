@@ -17,19 +17,23 @@ static inline double pbc(double x, const double boxby2) {
 #ifdef ENABLE_OPENMPI
   // Computing the interaction force for each particle
   void force(mdsys_t *sys) {
-      double r, ffac;
+      double rsq, ffac;
       double rx, ry, rz;
       double epot;
       int init, stop;
       double temp_fx[sys->natoms], temp_fy[sys->natoms], temp_fz[sys->natoms];
 
+      const double c6 = 4.0 * sys->epsilon * exp(6 * log(sys->sigma));
+      const double c12 = 4.0 * sys->epsilon * exp(12 * log(sys->sigma));
+      const double rcsq = sys->rcut * sys->rcut; 
+
       init = sys->local_size * sys->rank + sys->offset;
       stop = init + sys->local_size;
 
-      /*printf("init: %d, stop: %d\n", init, stop);*/
-
       /* Zero energy and forces */
+      epot = 0.0;
       sys->epot = 0.0;
+
       azzero(temp_fx, sys->natoms);
       azzero(temp_fy, sys->natoms);
       azzero(temp_fz, sys->natoms);
@@ -39,31 +43,37 @@ static inline double pbc(double x, const double boxby2) {
       MPI_Bcast(sys->rz, sys->natoms, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
       for (int i = init; i < stop; ++i) {
-          for (int j = 0; j < sys->natoms; ++j) {
+        for (int j = i+1; j < (sys->natoms); ++j) {
+            
+            if(i == j) continue;
 
-              /* Skip self-interaction */
-              if (i == j) continue;
+            /* Minimum image convention */
+            rx = pbc(sys->rx[i] - sys->rx[j], 0.5 * sys->box);
+            ry = pbc(sys->ry[i] - sys->ry[j], 0.5 * sys->box);
+            rz = pbc(sys->rz[i] - sys->rz[j], 0.5 * sys->box);
 
-              /* Minimum image convention */
-              rx = pbc(sys->rx[i] - sys->rx[j], 0.5 * sys->box);
-              ry = pbc(sys->ry[i] - sys->ry[j], 0.5 * sys->box);
-              rz = pbc(sys->rz[i] - sys->rz[j], 0.5 * sys->box);
-              r = sqrt(rx * rx + ry * ry + rz * rz);
+            rsq = rx * rx + ry * ry + rz * rz;
 
-              /* Compute force and energy if within cutoff */
-              if (r < sys->rcut) {
-                  ffac = -4.0 * sys->epsilon * (-12.0 * pow(sys->sigma / r, 12.0) / r
-                                              + 6.0 * pow(sys->sigma / r, 6.0) / r);
+            if (rsq < rcsq) {
+                double r6, rinv; 
+                rinv = 1.0 / rsq;
+                r6 = rinv * rinv * rinv; 
 
-                  epot += 0.5 * 4.0 * sys->epsilon * (pow(sys->sigma / r, 12.0)
-                                                         - pow(sys->sigma / r, 6.0));
+                ffac = (12.0 * c12 * r6 - 6.0 * c6) * r6 * rinv;               
+                epot += r6 * (c12 * r6 - c6); 
 
-                  temp_fx[i] += rx / r * ffac;
-                  temp_fy[i] += ry / r * ffac;
-                  temp_fz[i] += rz / r * ffac;
-              }
-          }
+                temp_fx[i] += rx * ffac; 
+                temp_fx[j] -= rx  * ffac;
+
+                temp_fy[i] += ry  * ffac; 
+                temp_fy[j] -= ry  * ffac;
+
+                temp_fz[i] += rz  * ffac; 
+                temp_fz[j] -= rz  * ffac;
+            }
+        }
       }
+      /*printf("epot: %5.5f\n", epot);*/
 
       /*printf("size: %d, %d\n", (int) (sizeof(temp_fx)/sizeof(double)), sys->rank);*/
       MPI_Reduce(&epot, &(sys->epot), 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
@@ -76,42 +86,46 @@ static inline double pbc(double x, const double boxby2) {
 #else
   // Computing the interaction force for each particle
   void force(mdsys_t *sys) {
-      double r, ffac;
-      double rx, ry, rz;
-      int i, j;
+    double ffac;
+    double rsq; 
+    double rx, ry, rz;
+    int i, j;
 
-      /* Zero energy and forces */
-      sys->epot = 0.0;
-      azzero(sys->fx, sys->natoms);
-      azzero(sys->fy, sys->natoms);
-      azzero(sys->fz, sys->natoms);
+    /* Zero energy and forces */
+    sys->epot = 0.0;
 
-      for (i = 0; i < sys->natoms; ++i) {
-          for (j = 0; j < sys->natoms; ++j) {
+    azzero(sys->fx, sys->natoms);
+    azzero(sys->fy, sys->natoms);
+    azzero(sys->fz, sys->natoms);
 
-              /* Skip self-interaction */
-              if (i == j) continue;
+    const double c6 = 4.0 * sys->epsilon * exp(6 * log(sys->sigma));
+    const double c12 = 4.0 * sys->epsilon * exp(12 * log(sys->sigma));
+    const double rcsq = sys->rcut * sys->rcut; 
 
-              /* Minimum image convention */
-              rx = pbc(sys->rx[i] - sys->rx[j], 0.5 * sys->box);
-              ry = pbc(sys->ry[i] - sys->ry[j], 0.5 * sys->box);
-              rz = pbc(sys->rz[i] - sys->rz[j], 0.5 * sys->box);
-              r = sqrt(rx * rx + ry * ry + rz * rz);
+    for (i = 0; i < (sys->natoms)-1; ++i) {
+        for (j = i+1; j < (sys->natoms); ++j) {
 
-              /* Compute force and energy if within cutoff */
-              if (r < sys->rcut) {
-                  ffac = -4.0 * sys->epsilon * (-12.0 * pow(sys->sigma / r, 12.0) / r
-                                              + 6.0 * pow(sys->sigma / r, 6.0) / r);
+            /* Minimum image convention */
+            rx = pbc(sys->rx[i] - sys->rx[j], 0.5 * sys->box);
+            ry = pbc(sys->ry[i] - sys->ry[j], 0.5 * sys->box);
+            rz = pbc(sys->rz[i] - sys->rz[j], 0.5 * sys->box);
 
-                  sys->epot += 0.5 * 4.0 * sys->epsilon * (pow(sys->sigma / r, 12.0)
-                                                         - pow(sys->sigma / r, 6.0));
+            rsq = rx * rx + ry * ry + rz * rz;
 
-                  sys->fx[i] += rx / r * ffac;
-                  sys->fy[i] += ry / r * ffac;
-                  sys->fz[i] += rz / r * ffac;
-              }
-          }
-      }
+            if (rsq < rcsq) {
+                double r6, rinv; 
+                rinv = 1.0 / rsq;
+                r6 = rinv * rinv * rinv; 
+
+                ffac = (12.0 * c12 * r6 - 6.0 * c6) * r6 * rinv;               
+                sys->epot += r6 * (c12 * r6 - c6); 
+
+                sys->fx[i] += rx * ffac; sys->fx[j] -= rx  * ffac;    
+                sys->fy[i] += ry  * ffac; sys->fy[j] -= ry  * ffac;   
+                sys->fz[i] += rz  * ffac; sys->fz[j] -= rz  * ffac;
+            }
+        }
+    }
   }
 #endif
 
