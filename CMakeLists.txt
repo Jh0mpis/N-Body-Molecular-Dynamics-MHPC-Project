@@ -30,9 +30,6 @@ set_target_properties(main.x PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
 )
 
-# **Find and link OpenMP**
-find_package(OpenMP REQUIRED)
-
 # Add compiler flags (equivalent to CFLAGS)
 option(OPTIMIZATION_FLAGS "Enable optimization flags" ON)
 
@@ -57,13 +54,18 @@ endif(OPTIMIZATION_FLAGS)
 # Add macro definitions
 target_compile_definitions(main.x PRIVATE LJMD_VERSION=1.4)
 
-# Add compiler flags (equivalent to CFLAGS)
-option(ENABLE_OMP "Enable OpenMP flag" ON)
-# **Link OpenMP and add OpenMP compile options**
+# Add an option to enable OpenMP
+option(ENABLE_OMP "Enable OpenMP support" ON)
 if(ENABLE_OMP)
-  target_link_libraries(main.x PRIVATE m OpenMP::OpenMP_C)
-  target_compile_options(main.x PRIVATE ${OpenMP_C_FLAGS})
-endif(ENABLE_OMP)
+  # Find the OpenMP package
+  find_package(OpenMP REQUIRED)
+  
+  # Link the OpenMP library
+  target_link_libraries(main.x PRIVATE OpenMP::OpenMP_C)
+  
+  # Define a preprocessor macro for conditional compilation in your code
+  target_compile_definitions(main.x PRIVATE ENABLE_OMP)
+endif()
 
 # Add linker flags (equivalent to LDLIBS)
 target_link_libraries(main.x PRIVATE m) # `-lm` links the math library
