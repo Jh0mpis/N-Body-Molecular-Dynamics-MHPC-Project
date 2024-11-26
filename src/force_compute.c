@@ -33,12 +33,12 @@ void force(mdsys_t *sys) {
 
     double epot_local = 0.0;
 
-    #ifdef _OPENMP
+    #ifdef ENABLE_OMP
     #pragma omp parallel num_threads(nthreads)
     #endif
     {   
         int tid = 0;
-        #ifdef _OPENMP
+        #ifdef ENABLE_OMP
         tid = omp_get_thread_num();
         #endif
 
@@ -96,7 +96,7 @@ void force(mdsys_t *sys) {
 
         
         /* Sum forces from all threads */
-        #ifdef _OPENMP
+        #ifdef ENABLE_OMP
         #pragma omp barrier
         #endif
         int chunk_size = (natoms + nthreads - 1) / nthreads;
@@ -128,7 +128,9 @@ void force(mdsys_t *sys) {
 void ekin(mdsys_t *sys) {
     double ekin_local = 0.0; // Local variable for reduction
 
+    #ifdef ENABLE_OMP
     #pragma omp parallel for reduction(+:ekin_local)
+    #endif
     for (int i = 0; i < sys->natoms; ++i) {
         ekin_local += 0.5 * mvsq2e * sys->mass *
                       (sys->vx[i] * sys->vx[i] +
