@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(CProject LANGUAGES C)
 
-# set policy to silence warnings about timestamps of downloaded files. review occasionally if it may be set to NEW
+# set policy to silence warnings about timestamps of downloaded files. Review occasionally if it may be set to NEW
 if(POLICY CMP0135)
   cmake_policy(SET CMP0135 OLD)
 endif()
@@ -15,9 +15,77 @@ endif()
 # Define directories
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
+# Add compiler flags (equivalent to CFLAGS)
+option(OPTIMIZATION_FLAGS "Enable optimization flags" ON)
+# Enable openMPI
+option(ENABLE_OMPI "Enabling open MPI" OFF)
 
 # Find all .c files in the src directory
 file(GLOB_RECURSE SRC_FILES "${SRC_DIR}/*.c")
+
+if(ENABLE_OMPI)
+  message("\n    [info] USING OPENMPI" )
+  message("     [info] Building the openMPI version")
+  # setting the compiler to mpicc
+  set(CMAKE_C_COMPILER mpicc)
+
+  # Find the MPI package
+  find_package(MPI REQUIRED)
+
+  # If MPI is found, print details 
+  if (MPI_FOUND)
+    message(STATUS "    [info] MPI include path: ${MPI_INCLUDE_PATH}")
+    message(STATUS "    [info] MPI libraries: ${MPI_LIBRARIES}")
+    message(STATUS "    [info] MPI C compiler: ${MPI_C_COMPILER}")
+  endif()
+
+  add_executable(mpi_main.x ${CMAKE_SOURCE_DIR}/main.c ${SRC_FILES})
+
+  # Include directories
+  target_include_directories(mpi_main.x PRIVATE ${INCLUDE_DIR})
+
+  # Set output directories
+  set_target_properties(mpi_main.x PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+  )
+
+  if(OPTIMIZATION_FLAGS) 
+    message("    [info] USING OPTIMIZATION FLAGS\n")
+
+    # Deffining compiler flags
+    target_compile_options(mpi_main.x PRIVATE
+      -Wall
+      -O3
+      -ffast-math
+      -fomit-frame-pointer
+      -ffp-contract=fast
+      -march=native
+      -DENABLE_OPENMPI
+    )
+
+    target_compile_definitions(mpi_main.x PRIVATE LJMD_VERSION=1.3)
+  else(OPTIMIZATION_FLAGS)
+    message(STATUS "    [info] NOT USING OPTIMIZATION FLAGS")
+    target_compile_options(mpi_main.x PRIVATE
+      -Wall
+      -g
+      -DENABLE_OPENMPI
+    )
+  endif(OPTIMIZATION_FLAGS)
+
+  # Add macro definitions
+  target_compile_definitions(mpi_main.x PRIVATE LJMD_VERSION=1.0)
+
+  # Add linker flags (equivalent to LDLIBS)
+  target_link_libraries(mpi_main.x PRIVATE m) # `-lm` links the math library
+
+else(ENABLE_OMPI)
+  message("\n   [info] NOT USING OPENMPI")
+endif(ENABLE_OMPI)
+
+# setting the compiler back to gcc
+# set(CMAKE_C_COMPILER gcc)
+message("     [info] Building the gcc version")
 
 # Add an executable for the main program
 add_executable(main.x ${CMAKE_SOURCE_DIR}/main.c ${SRC_FILES})
@@ -30,11 +98,8 @@ set_target_properties(main.x PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
 )
 
-# Add compiler flags (equivalent to CFLAGS)
-option(OPTIMIZATION_FLAGS "Enable optimization flags" ON)
-
 if(OPTIMIZATION_FLAGS) 
-  message(STATUS "USING OPTIMIZATION FLAGS")
+  message("    [info] USING OPTIMIZATION FLAGS\n")
   target_compile_options(main.x PRIVATE
     -Wall
     -O3
@@ -44,7 +109,7 @@ if(OPTIMIZATION_FLAGS)
     -march=native
   )
 else(OPTIMIZATION_FLAGS)
-  message(STATUS "NON USING OPTIMIZATION FLAGS")
+  message(STATUS "    [info] NOT USING OPTIMIZATION FLAGS")
   target_compile_options(main.x PRIVATE
     -Wall
     -g
