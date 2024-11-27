@@ -28,35 +28,30 @@ void force(mdsys_t *sys) {
     azzero(sys->cx, natoms * nthreads);
     azzero(sys->cy, natoms * nthreads);
     azzero(sys->cz, natoms * nthreads);
+    azzero(sys->fx, natoms);
+    azzero(sys->fy, natoms);
+    azzero(sys->fz, natoms);
 
     const double register rcsq = sys->rcut * sys->rcut;
     
-    double epot_local = 0.0;
+    sys->epot = 0.0;
 
     #ifdef ENABLE_OPENMP
     #pragma omp parallel num_threads(nthreads)
     #endif
     {   
         int tid = 0;
+        double epot_local = 0.0;
         #ifdef ENABLE_OPENMP
         tid = omp_get_thread_num();
         #endif
 
-        double *cx = sys->cx + tid * natoms;
-        double *cy = sys->cy + tid * natoms;
-        double *cz = sys->cz + tid * natoms;
-
-        /* Each thread processes a subset of particles */
-        double epot_thread = 0.0;
-
         int stride = nthreads;
-        for (int i = 0; i < natoms - 1; i += stride) {
-            int ii = i + tid;
-            if (ii >= (sys->natoms -1)) break; //error: break statement used with OpenMP for loop
-            double rx1 = sys->rx[ii];
-            double ry1 = sys->ry[ii];
-            double rz1 = sys->rz[ii];
-            for (int j = ii + 1; j < natoms; ++j) {
+        for (i = tid; i < natoms; i += stride) {
+            double rx1 = sys->rx[i];
+            double ry1 = sys->ry[i];
+            double rz1 = sys->rz[i];
+            for (int j = i + 1; j < natoms; ++j) {
                 double rx, ry, rz, ffac;
                 double register rsq; 
 
@@ -77,22 +72,20 @@ void force(mdsys_t *sys) {
                     double epsilon4 = 4.0 * sys->epsilon;
 
                     /* Accumulate potential energy */
-                    #ifdef _OPENMP
-                    #pragma omp atomic
-                    #endif
                     epot_local += epsilon4 * (sr12 - sr6);
 
                     /* Compute force factor */
                     ffac = epsilon4 * (12.0 * sr12 - 6.0 * sr6) * (rsqinv);
 
+                    int off = natoms * tid;
                     /* Apply forces */
-                    cx[i] += rx * ffac;
-                    cy[i] += ry * ffac;
-                    cz[i] += rz * ffac;
+                    sys->cx[i + off] += rx * ffac;
+                    sys->cy[i + off] += ry * ffac;
+                    sys->cz[i + off] += rz * ffac;
 
-                    cx[j] -= rx * ffac;
-                    cy[j] -= ry * ffac;
-                    cz[j] -= rz * ffac;
+                    sys->cx[j + off] -= rx * ffac;
+                    sys->cy[j + off] -= ry * ffac;
+                    sys->cz[j + off] -= rz * ffac;
                 }
             }
         }
@@ -102,32 +95,17 @@ void force(mdsys_t *sys) {
         #ifdef ENABLE_OPENMP
         #pragma omp barrier
         #endif
-        int chunk_size = (natoms + nthreads - 1) / nthreads;
-        int start = tid * chunk_size;
-        int end = (start + chunk_size > natoms) ? natoms : start + chunk_size;
-
-        for (int t = 1; t < nthreads; ++t) {
-            int offset = t * natoms;
-            for (int i = start; i < end; ++i) {
-                sys->cx[i] += sys->cx[offset + i];
-                sys->cy[i] += sys->cy[offset + i];
-                sys->cz[i] += sys->cz[offset + i];
+        for (int i = 0; i < natoms; i += nthreads){
+            int ii = i + tid;
+            for (int t = 0; t < nthreads; t++){
+                sys->fx[ii] += sys->cx[natoms * t + ii];
+                sys->fy[ii] += sys->cy[natoms * t + ii];
+                sys->fz[ii] += sys->cz[natoms * t + ii];
             }
-        }   
+        }
+        /* Assign the accumulated potential energy */
+        sys->epot += epot_local;
     }
-
-     // Update global forces and epot
-    #ifdef ENABLE_OPENMP
-    #pragma omp parallel for
-    #endif
-    for (int i = 0; i < natoms; ++i) {
-        sys->fx[i] = sys->cx[i];
-        sys->fy[i] = sys->cy[i];
-        sys->fz[i] = sys->cz[i];
-    }
-
-    /* Assign the accumulated potential energy */
-    sys->epot = epot_local;
 }
 
 
