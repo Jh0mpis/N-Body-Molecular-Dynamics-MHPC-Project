@@ -104,6 +104,7 @@ void force(mdsys_t *sys) {
             }
         }
         /* Assign the accumulated potential energy */
+        #pragma omp atomic
         sys->epot += epot_local;
     }
 }
