@@ -14,6 +14,9 @@
 #ifdef ENABLE_OPENMPI
   #include <mpi.h>
 #endif
+#ifdef ENABLE_OPENMP
+  #include <omp.h>
+#endif
 
 int main(int argc, char **argv) {
     
@@ -32,6 +35,17 @@ int main(int argc, char **argv) {
         printf("Running with OpenMPI using %d process\n", sys.nps);
         printf("LJMD version %3.3f\n", LJMD_VERSION);
       }
+    #endif
+
+    #ifdef ENABLE_OPENMP
+      #pragma omp parallel                   
+      {
+        int id_thread = omp_get_thread_num();
+        if(!id_thread){
+          printf("Running with OpenMP using %d threads\n", omp_get_num_threads());
+          printf("LJMD version %3.3f\n", LJMD_VERSION);
+        }
+      }  
     #endif
 
     FILE *traj, *erg;
