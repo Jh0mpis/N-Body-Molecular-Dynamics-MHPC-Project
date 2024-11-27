@@ -1,4 +1,8 @@
-# Project Report 
+# N-Body Molecular Dynamic Optimization Project Report 
+## Authors: 
+- Feitosa Benevides André
+- Moreno Triana Jhon Sebastián
+- Redjil Abou Bakr Essadiq
 
 ##  Introduction 
 The aim of this project is to optimize and parallelize a `C` program that simulates the mollecular dynamics of N-body system govenered by the Leonard-Jones potential. The problem was divided into 3 folds. Optimization, Parallelzing with OpenMp, and with OpenMpi.  
