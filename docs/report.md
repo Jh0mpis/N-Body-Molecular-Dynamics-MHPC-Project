@@ -12,6 +12,6 @@ The optimization task involved refactoring the code into seperate files. Then, t
 
 ## Results
 
-## Challenges 
+## Discussion 
 
 ## Conclusion 
