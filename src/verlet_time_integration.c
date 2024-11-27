@@ -1,4 +1,6 @@
-#include <omp.h>
+#ifdef ENABLE_OPENMP
+  #include <omp.h>
+#endif
 #include "../include/verlet_time_integration.h"   // velverlet function header file
 #include "../include/constants.h"                 // constants definition header file
 #include "../include/force_compute.h"             // Force and kinetic energy functions header file
@@ -6,7 +8,7 @@
 void velverlet(mdsys_t *sys) {
     /* First part: propagate velocities by half and positions by full step */
     const double register denom = 0.5 * sys->dt / (mvsq2e*sys->mass); 
-    #ifdef ENABLE_OMP
+    #ifdef ENABLE_OPENMP
     #pragma omp parallel for
     #endif
     for (unsigned int i = 0; i < sys->natoms; ++i) {
@@ -23,7 +25,7 @@ void velverlet(mdsys_t *sys) {
     force(sys);
 
     /* Second part: propagate velocities by another half step */
-    #ifdef ENABLE_OMP
+    #ifdef ENABLE_OPENMP
     #pragma omp parallel for
     #endif
     for (unsigned int i = 0; i < sys->natoms; ++i) {

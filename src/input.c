@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <omp.h>
 #include "../include/input.h"       // input functions header file
 #include "../include/constants.h"   // constants definition header file
 #include "../include/mdsys.h"       // struct definition header file
@@ -61,15 +60,6 @@ int read_input_files(mdsys_t *sys, FILE **erg, FILE **traj){
     sys->dt = atof(line);
     if (get_a_line(stdin, line)) return -1;
 
-    #ifdef ENABLE_OMP
-    sys->nthreads = omp_get_num_threads();
-    printf("Running with OMP enabled using %d threads\n", omp_get_num_threads());
-    #else
-    sys->nthreads = 1;
-    printf("Running without OMP, using only %d thread\n", sys->nthreads);
-    #endif
-    
-
     /* Allocate memory */
     sys->rx = (double *)malloc(sys->natoms * sizeof(double));
     sys->ry = (double *)malloc(sys->natoms * sizeof(double));
@@ -80,9 +70,13 @@ int read_input_files(mdsys_t *sys, FILE **erg, FILE **traj){
     sys->fx = (double *)malloc(sys->natoms * sizeof(double));
     sys->fy = (double *)malloc(sys->natoms * sizeof(double));
     sys->fz = (double *)malloc(sys->natoms * sizeof(double));
-    sys->cx = (double *)malloc(sys->nthreads * sys->natoms * sizeof(double));
-    sys->cy = (double *)malloc(sys->nthreads * sys->natoms * sizeof(double));
-    sys->cz = (double *)malloc(sys->nthreads * sys->natoms * sizeof(double));
+    int nthreads = 1;
+    #ifdef ENABLE_OPENMP
+      nthreads = sys->nthreads;
+    #endif
+    sys->cx = (double *)malloc(nthreads * sys->natoms * sizeof(double));
+    sys->cy = (double *)malloc(nthreads * sys->natoms * sizeof(double));
+    sys->cz = (double *)malloc(nthreads * sys->natoms * sizeof(double));
 
     /* Read restart */
     fp = fopen(restfile, "r");
