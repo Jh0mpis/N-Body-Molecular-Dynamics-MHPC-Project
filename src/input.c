@@ -164,6 +164,14 @@ int read_input_files(mdsys_t *sys, FILE **erg, FILE **traj){
       sys->fy = (double *)malloc(sys->natoms * sizeof(double));
       sys->fz = (double *)malloc(sys->natoms * sizeof(double));
 
+    #ifdef ENABLE_OPENMP
+
+      sys->cx = (double *)malloc(sys->nthreads * sys->natoms * sizeof(double));
+      sys->cy = (double *)malloc(sys->nthreads * sys->natoms * sizeof(double));
+      sys->cz = (double *)malloc(sys->nthreads * sys->natoms * sizeof(double));
+
+    #endif
+
       /* Read restart */
       fp = fopen(restfile, "r");
       if (fp) {

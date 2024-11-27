@@ -14,6 +14,9 @@
 #ifdef ENABLE_OPENMPI
   #include <mpi.h>
 #endif
+#ifdef ENABLE_OPENMP
+#include <omp.h>
+#endif
 
 int main(int argc, char **argv) {
     
@@ -38,8 +41,19 @@ int main(int argc, char **argv) {
     double t_start;
 
 
-    t_start = wallclock();
+    #ifdef ENABLE_OPENMP
+      #pragma omp parallel
+      {
+        int id_trhead = omp_get_thread_num();
+        if(!id_trhead){
+          sys.nthreads = omp_get_num_threads();
+          printf("Using %d threads\n", sys.nthreads);
+        }
+      }
+    #endif
 
+    t_start = wallclock();
+    
     // Initialize the system from input files
     const int nprint = read_input_files(&sys, &erg, &traj);
     if (nprint <= 0 ) return 1;

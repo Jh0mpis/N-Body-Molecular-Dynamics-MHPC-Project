@@ -5,14 +5,16 @@
 #include "../include/output.h"                    // output function header file
 #include "../include/verlet_time_integration.h"   // velverlet function header file
 
+
 // Principal loop function
-void run(mdsys_t *sys, FILE **erg, FILE **traj, const double initial_time, const int nprint){
+void run(mdsys_t *sys, FILE **erg, FILE **traj, const double initial_time, const int nprint) {
     double t_start;
-  
+
     /* Initialize forces and energies */
     sys->nfi = 0;
-    force(&(*sys));
-    ekin(&(*sys));
+
+    force(sys);
+    ekin(sys);
 
     #ifdef ENABLE_OPENMPI
       if(!sys->rank){
@@ -35,7 +37,6 @@ void run(mdsys_t *sys, FILE **erg, FILE **traj, const double initial_time, const
 
     /* Main MD loop */
     for (sys->nfi = 1; sys->nfi <= sys->nsteps; ++sys->nfi) {
-
         /* Write output, if requested */
         if ((sys->nfi % nprint) == 0){
             #ifdef ENABLE_OPENMPI
