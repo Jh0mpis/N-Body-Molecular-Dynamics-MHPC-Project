@@ -63,6 +63,8 @@ if(ENABLE_OMP)
   # Link the OpenMP library
   target_link_libraries(main.x PRIVATE OpenMP::OpenMP_C)
   
+  #target_compile_options(main.x PRIVATE -fopenmp)
+
   # Define a preprocessor macro for conditional compilation in your code
   target_compile_definitions(main.x PRIVATE ENABLE_OMP)
 endif()
