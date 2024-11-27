@@ -89,6 +89,14 @@ int read_input_files(mdsys_t *sys, FILE **erg, FILE **traj){
       sys->fx = (double *)malloc(sys->natoms * sizeof(double));
       sys->fy = (double *)malloc(sys->natoms * sizeof(double));
       sys->fz = (double *)malloc(sys->natoms * sizeof(double));
+    
+    #ifdef ENABLE_OPENMP
+
+      sys->cx = (double *)malloc(sys->nthreads * sys->natoms * sizeof(double));
+      sys->cy = (double *)malloc(sys->nthreads * sys->natoms * sizeof(double));
+      sys->cz = (double *)malloc(sys->nthreads * sys->natoms * sizeof(double));
+
+    #endif
 
       sys->local_size = sys->natoms / sys->nps;
       sys->offset = 0;

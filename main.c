@@ -33,7 +33,9 @@ int main(int argc, char **argv) {
       
       if(!sys.rank){
         printf("Running with OpenMPI using %d process\n", sys.nps);
+        #ifndef ENABLE_OPENMP
         printf("LJMD version %3.3f\n", LJMD_VERSION);
+        #endif
       }
     #endif
 
@@ -47,7 +49,15 @@ int main(int argc, char **argv) {
         int id_trhead = omp_get_thread_num();
         if(!id_trhead){
           sys.nthreads = omp_get_num_threads();
-          printf("Using %d threads\n", sys.nthreads);
+          #ifdef ENABLE_OPENMPI
+          if(!rank){
+            printf("Running with OpenMP using %d threads\n", sys.nthreads);
+            printf("LJMD version %3.3f\n", LJMD_VERSION);
+          }
+          #else
+            printf("Running with OpenMP using %d threads\n", sys.nthreads);
+            printf("LJMD version %3.3f\n", LJMD_VERSION);
+          #endif
         }
       }
     #endif
