@@ -1,5 +1,6 @@
-#include <math.h>
-#include <omp.h>
+#ifdef ENABLE_OPENMP
+  #include <omp.h>
+#endif /* ifdef ENABLE_OPENMP */
 #include "../include/constants.h"     // constants definitions header file
 #include "../include/mdsys.h"         // System struct definition header file
 #include "../include/utilities.h"     // timing, zero matrix and pbc functions header file
@@ -18,7 +19,11 @@ void force(mdsys_t *sys) {
     double rx, ry, rz;
     int i, j;
 
-    nthreads = sys->nthreads;
+    #ifdef ENABLE_OPENMP
+      nthreads = sys->nthreads;
+    #else
+      nthreads = 1;
+    #endif /* ifdef ENABLE_OPENMP */
 
     azzero(sys->cx, natoms * nthreads);
     azzero(sys->cy, natoms * nthreads);
@@ -28,12 +33,12 @@ void force(mdsys_t *sys) {
     
     double epot_local = 0.0;
 
-    #ifdef ENABLE_OMP
+    #ifdef ENABLE_OPENMP
     #pragma omp parallel num_threads(nthreads)
     #endif
     {   
         int tid = 0;
-        #ifdef ENABLE_OMP
+        #ifdef ENABLE_OPENMP
         tid = omp_get_thread_num();
         #endif
 
@@ -94,7 +99,7 @@ void force(mdsys_t *sys) {
 
         
         /* Sum forces from all threads */
-        #ifdef ENABLE_OMP
+        #ifdef ENABLE_OPENMP
         #pragma omp barrier
         #endif
         int chunk_size = (natoms + nthreads - 1) / nthreads;
@@ -112,7 +117,7 @@ void force(mdsys_t *sys) {
     }
 
      // Update global forces and epot
-    #ifdef ENABLE_OMP
+    #ifdef ENABLE_OPENMP
     #pragma omp parallel for
     #endif
     for (int i = 0; i < natoms; ++i) {
@@ -129,7 +134,7 @@ void force(mdsys_t *sys) {
 void ekin(mdsys_t *sys) {
     double ekin_local = 0.0; // Local variable for reduction
 
-    #ifdef ENABLE_OMP
+    #ifdef ENABLE_OPENMP
     #pragma omp parallel for reduction(+:ekin_local)
     #endif
     for (int i = 0; i < sys->natoms; ++i) {

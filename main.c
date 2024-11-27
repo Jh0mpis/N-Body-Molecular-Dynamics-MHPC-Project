@@ -11,6 +11,9 @@
 #include "include/utilities.h"                // wallclock, azzero, pbc
 #include "include/cleanup.h"                  // Free the allocated stuff
 #include "include/simulate.h"                 // Run the simulation 
+#ifdef ENABLE_OPENMP
+#include <omp.h>
+#endif
 
 int main(int argc, char **argv) {
     FILE *traj, *erg;
@@ -19,7 +22,16 @@ int main(int argc, char **argv) {
 
     printf("LJMD version %3.3f\n", LJMD_VERSION);
 
-     printf("Using %d threads\n", omp_get_num_threads());
+    #ifdef ENABLE_OPENMP
+      #pragma omp parallel
+      {
+        int id_trhead = omp_get_thread_num();
+        if(!id_trhead){
+          printf("Using %d threads\n", omp_get_num_threads());
+          sys.nthreads = omp_get_num_threads();
+        }
+      }
+    #endif
 
     t_start = wallclock();
     

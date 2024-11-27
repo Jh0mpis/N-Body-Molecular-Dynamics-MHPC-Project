@@ -5,7 +5,10 @@
 typedef struct {
     double dt, mass, epsilon, sigma, box, rcut;
     double ekin, epot, temp;
-    int natoms, nfi, nsteps, nthreads;
+    int natoms, nfi, nsteps;
+    #ifdef ENABLE_OPENMP
+      int nthreads;
+    #endif // ENABLE_OPENMP
     double *rx, *ry, *rz;
     double *vx, *vy, *vz;
     double *fx, *fy, *fz;
