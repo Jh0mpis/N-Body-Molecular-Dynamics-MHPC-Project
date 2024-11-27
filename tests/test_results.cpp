@@ -100,12 +100,3 @@ TEST(OUTPUT_RESULT3, REFRENCE_RESULT3)
         }
     }
 }
-
-int main(int argc, char **argv)
-{
-    // Initialize Google Test framework
-    ::testing::InitGoogleTest(&argc, argv);
-
-    // Run all tests and return the result
-    return RUN_ALL_TESTS();
-}
