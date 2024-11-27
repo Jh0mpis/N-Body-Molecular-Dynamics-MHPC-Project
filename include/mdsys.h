@@ -8,17 +8,14 @@
 typedef struct {
     double dt, mass, epsilon, sigma, box, rcut;
     double ekin, epot, temp;
-    int natoms, nfi, nsteps;
+    int natoms, nfi, nsteps, nthreads;;
     #ifdef ENABLE_OPENMPI
       int rank, nps, local_size, offset;
-    #endif
-    #ifdef ENABLE_OPENMP
-      int nthreads;
-    #endif // ENABLE_OPENMP
+    #endif 
     double *rx, *ry, *rz;
     double *vx, *vy, *vz;
     double *fx, *fy, *fz;
-    #ifdef ENABLE_OPENMP
+    #if defined(ENABLE_OPENMPI) || defined(ENABLE_OPENMP)
       double *cx, *cy, *cz;
     #endif
 } mdsys_t;

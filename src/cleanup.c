@@ -27,7 +27,7 @@ void clean(mdsys_t *sys, FILE **erg, FILE **traj){
     free(sys->fy);
     free(sys->fz);
 
-    #ifdef ENABLE_OPENMP
+    #if defined(ENABLE_OPENMP) || defined (ENABLE_OPENMPI)
     free(sys->cx);
     free(sys->cy);
     free(sys->cz);

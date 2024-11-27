@@ -18,7 +18,7 @@ void force(mdsys_t *sys) {
     int init = 0, stop = sys->natoms;
     double rx, ry, rz;
 
-    #ifdef ENABLE_OPENMP
+    #if defined(ENABLE_OPENMP) || defined(ENABLE_OPENMPI)
       azzero(sys->cx, sys->natoms * sys->nthreads);
       azzero(sys->cy, sys->natoms * sys->nthreads);
       azzero(sys->cz, sys->natoms * sys->nthreads);
@@ -26,23 +26,20 @@ void force(mdsys_t *sys) {
   
     #ifdef ENABLE_OPENMPI
       double epot = 0;
-      double temp_fx[sys->natoms], temp_fy[sys->natoms], temp_fz[sys->natoms];
       init = sys->local_size * sys->rank + sys->offset;
       stop = init + sys->local_size;
       epot = 0.0;
-
-      azzero(temp_fx, sys->natoms);
-      azzero(temp_fy, sys->natoms);
-      azzero(temp_fz, sys->natoms);
 
       MPI_Bcast(sys->rx, sys->natoms, MPI_DOUBLE, 0, MPI_COMM_WORLD);
       MPI_Bcast(sys->ry, sys->natoms, MPI_DOUBLE, 0, MPI_COMM_WORLD);
       MPI_Bcast(sys->rz, sys->natoms, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     #endif // ENABLE_OPENMPI
   
-    azzero(sys->fx, sys->natoms);
-    azzero(sys->fy, sys->natoms);
-    azzero(sys->fz, sys->natoms);
+    #ifndef ENABLE_OPENMPI
+      azzero(sys->fx, sys->natoms);
+      azzero(sys->fy, sys->natoms);
+      azzero(sys->fz, sys->natoms);
+    #endif // not ENABLE_OPENMPI
 
     const double register rcsq = sys->rcut * sys->rcut;
     
@@ -81,28 +78,25 @@ void force(mdsys_t *sys) {
                     double epsilon4 = 4.0 * sys->epsilon;
 
                     /* Accumulate potential energy */
-                  #ifdef ENABLE_OPENMP
-                    epot_local += epsilon4 * (sr12 - sr6);
-                  #endif //ENABLE_OPENMP
 
                     /* Compute force factor */
                     ffac = epsilon4 * (12.0 * sr12 - 6.0 * sr6) * (rsqinv);
-                  #ifdef ENABLE_OPENMPI
-                    #ifndef ENABLE_OPENMP
+                  #if defined(ENABLE_OPENMPI) && !defined(ENABLE_OPENMP)
                     epot +=  epsilon4 * (sr12 - sr6);
 
-                    temp_fx[i] += rx * ffac; 
-                    temp_fx[j] -= rx  * ffac;
+                    sys->cx[i] += rx * ffac; 
+                    sys->cx[j] -= rx  * ffac;
 
-                    temp_fy[i] += ry  * ffac; 
-                    temp_fy[j] -= ry  * ffac;
+                    sys->cy[i] += ry  * ffac; 
+                    sys->cy[j] -= ry  * ffac;
 
-                    temp_fz[i] += rz  * ffac; 
-                    temp_fz[j] -= rz  * ffac;
-                    #endif //ENABLE_OPENMP
-                  #endif  //ENABLE_OPENMPI
+                    sys->cz[i] += rz  * ffac; 
+                    sys->cz[j] -= rz  * ffac;
+                  #endif  //ENABLE_OPENMPI && not ENABLE_OPENMP
 
                   #ifdef ENABLE_OPENMP
+                    epot_local += epsilon4 * (sr12 - sr6);
+
                     int off = natoms * tid;
                     sys->cx[i + off] += rx * ffac;
                     sys->cy[i + off] += ry * ffac;
@@ -113,8 +107,7 @@ void force(mdsys_t *sys) {
                     sys->cz[j + off] -= rz * ffac;
                   #endif
 
-                  #ifndef ENABLE_OPENMPI
-                    #ifndef ENABLE_OPENMP
+                  #if !defined(ENABLE_OPENMPI) && !defined (ENABLE_OPENMP)
                     
                       sys->epot += epsilon4 * (sr12 - sr6);
                       
@@ -126,8 +119,7 @@ void force(mdsys_t *sys) {
                       sys->fy[j] -= ry * ffac;
                       sys->fz[j] -= rz * ffac;
 
-                    #endif /* ifndef ENABLE_OPENMP */
-                  #endif  // not ENABLE_OPENMPI
+                  #endif  // not ENABLE_OPENMPI && not ENABLE_OPENMPI
                 }
             }
         }
@@ -137,12 +129,13 @@ void force(mdsys_t *sys) {
         #ifdef ENABLE_OPENMP
         #pragma omp barrier
         for (int i = tid; i < natoms; i += sys->nthreads){
-            for (int t = 0; t < sys->nthreads; t++){
               #ifdef ENABLE_OPENMPI
-                temp_fx[i] += sys->cx[natoms * t + i];
-                temp_fy[i] += sys->cy[natoms * t + i];
-                temp_fz[i] += sys->cz[natoms * t + i];
+            for (int t = 1; t < sys->nthreads; t++){
+                sys->cx[i] += sys->cx[natoms * t + i];
+                sys->cy[i] += sys->cy[natoms * t + i];
+                sys->cz[i] += sys->cz[natoms * t + i];
               #else
+            for (int t = 0; t < sys->nthreads; t++){
                 sys->fx[i] += sys->cx[natoms * t + i];
                 sys->fy[i] += sys->cy[natoms * t + i];
                 sys->fz[i] += sys->cz[natoms * t + i];
@@ -162,9 +155,9 @@ void force(mdsys_t *sys) {
 
       MPI_Reduce(&epot, &(sys->epot), 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
-      MPI_Reduce(temp_fx, sys->fx, sys->natoms, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-      MPI_Reduce(temp_fy, sys->fy, sys->natoms, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-      MPI_Reduce(temp_fz, sys->fz, sys->natoms, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+      MPI_Reduce(sys->cx, sys->fx, sys->natoms, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+      MPI_Reduce(sys->cy, sys->fy, sys->natoms, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+      MPI_Reduce(sys->cz, sys->fz, sys->natoms, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
     #endif //ENABLE_OPENMPI
 }

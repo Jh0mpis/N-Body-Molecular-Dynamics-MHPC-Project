@@ -30,6 +30,7 @@ int main(int argc, char **argv) {
 
       sys.rank = rank;
       sys.nps = nps;
+      sys.nthreads = 1;
       
       if(!sys.rank){
         printf("Running with OpenMPI using %d process\n", sys.nps);
@@ -60,6 +61,10 @@ int main(int argc, char **argv) {
           #endif
         }
       }
+    #endif
+
+    #if !defined (ENABLE_OPENMPI) && !defined (ENABLE_OPENMP)
+        printf("LJMD version %3.3f\n", LJMD_VERSION);
     #endif
 
     t_start = wallclock();

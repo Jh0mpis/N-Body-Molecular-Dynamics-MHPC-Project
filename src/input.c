@@ -36,14 +36,15 @@ static int get_a_line(FILE *fp, char *buf) {
 // Read the entire file and associated files
 int read_input_files(mdsys_t *sys, FILE **erg, FILE **traj){
    
-    #ifdef ENABLE_OPENMPI
       char restfile[BLEN], line[BLEN];
       char trajfile[BLEN], ergfile[BLEN];
       FILE *fp;
       int nprint;
       
+    #ifdef ENABLE_OPENMPI
       /* Read input file and setting some system properties */
       if(!sys->rank){
+    #endif //ENABLE_OPENMPI
         if (get_a_line(stdin, line)) return -1;
         sys->natoms = atoi(line);
         if (get_a_line(stdin, line)) return -1;
@@ -67,6 +68,8 @@ int read_input_files(mdsys_t *sys, FILE **erg, FILE **traj){
         sys->dt = atof(line);
         if (get_a_line(stdin, line)) return -1;
         nprint = atoi(line);
+
+    #ifdef ENABLE_OPENMPI
       }    
 
       MPI_Bcast(&(sys->natoms), 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -79,6 +82,14 @@ int read_input_files(mdsys_t *sys, FILE **erg, FILE **traj){
       MPI_Bcast(&(sys->nsteps), 1, MPI_INT, 0, MPI_COMM_WORLD);
       MPI_Bcast(&nprint, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
+      sys->local_size = sys->natoms / sys->nps;
+      sys->offset = 0;
+      if(sys->rank < sys->natoms % sys->nps){
+        sys->local_size++;
+      }else{
+        sys->offset = sys->natoms % sys->nps;
+      }
+    #endif /* ifdef ENABLE_OPENMPI */
       /* Allocate memory */
       sys->rx = (double *)malloc(sys->natoms * sizeof(double));
       sys->ry = (double *)malloc(sys->natoms * sizeof(double));
@@ -89,24 +100,17 @@ int read_input_files(mdsys_t *sys, FILE **erg, FILE **traj){
       sys->fx = (double *)malloc(sys->natoms * sizeof(double));
       sys->fy = (double *)malloc(sys->natoms * sizeof(double));
       sys->fz = (double *)malloc(sys->natoms * sizeof(double));
-    
-    #ifdef ENABLE_OPENMP
 
+    #if defined(ENABLE_OPENMPI) || defined(ENABLE_OPENMP)
       sys->cx = (double *)malloc(sys->nthreads * sys->natoms * sizeof(double));
       sys->cy = (double *)malloc(sys->nthreads * sys->natoms * sizeof(double));
       sys->cz = (double *)malloc(sys->nthreads * sys->natoms * sizeof(double));
+    #endif // ENABLE_OPENMPI || ENABLE_OPENMP
 
-    #endif
 
-      sys->local_size = sys->natoms / sys->nps;
-      sys->offset = 0;
-      if(sys->rank < sys->natoms % sys->nps){
-        sys->local_size++;
-      }else{
-        sys->offset = sys->natoms % sys->nps;
-      }
-
+    #ifdef ENABLE_OPENMPI
       if(!sys->rank){
+    #endif // ENABLE_OPENMPI
         /* Read restart */
         fp = fopen(restfile, "r");
         if (fp) {
@@ -128,80 +132,9 @@ int read_input_files(mdsys_t *sys, FILE **erg, FILE **traj){
         // Open the output files
         *erg = fopen(ergfile, "w");
         *traj = fopen(trajfile, "w");
+    #ifdef ENABLE_OPENMPI
       }
+    #endif //ENABLE_OPENMPI
 
       return nprint; // returning the printing steps
-    #else
-
-      char restfile[BLEN], line[BLEN];
-      char trajfile[BLEN], ergfile[BLEN];
-      FILE *fp;
-      /* Read input file and setting some system properties */
-      if (get_a_line(stdin, line)) return -1;
-      sys->natoms = atoi(line);
-      if (get_a_line(stdin, line)) return -1;
-      sys->mass = atof(line);
-      if (get_a_line(stdin, line)) return -1;
-      sys->epsilon = atof(line);
-      if (get_a_line(stdin, line)) return -1;
-      sys->sigma = atof(line);
-      if (get_a_line(stdin, line)) return -1;
-      sys->rcut = atof(line);
-      if (get_a_line(stdin, line)) return -1;
-      sys->box = atof(line);
-
-      if (get_a_line(stdin, restfile)) return -1;
-      if (get_a_line(stdin, trajfile)) return -1;
-      if (get_a_line(stdin, ergfile)) return -1;
-      if (get_a_line(stdin, line)) return -1;
-      sys->nsteps = atoi(line);
-
-      if (get_a_line(stdin, line)) return -1;
-      sys->dt = atof(line);
-      if (get_a_line(stdin, line)) return -1;
-    
-
-      /* Allocate memory */
-      sys->rx = (double *)malloc(sys->natoms * sizeof(double));
-      sys->ry = (double *)malloc(sys->natoms * sizeof(double));
-      sys->rz = (double *)malloc(sys->natoms * sizeof(double));
-      sys->vx = (double *)malloc(sys->natoms * sizeof(double));
-      sys->vy = (double *)malloc(sys->natoms * sizeof(double));
-      sys->vz = (double *)malloc(sys->natoms * sizeof(double));
-      sys->fx = (double *)malloc(sys->natoms * sizeof(double));
-      sys->fy = (double *)malloc(sys->natoms * sizeof(double));
-      sys->fz = (double *)malloc(sys->natoms * sizeof(double));
-
-    #ifdef ENABLE_OPENMP
-
-      sys->cx = (double *)malloc(sys->nthreads * sys->natoms * sizeof(double));
-      sys->cy = (double *)malloc(sys->nthreads * sys->natoms * sizeof(double));
-      sys->cz = (double *)malloc(sys->nthreads * sys->natoms * sizeof(double));
-
-    #endif
-
-      /* Read restart */
-      fp = fopen(restfile, "r");
-      if (fp) {
-          for (int i = 0; i < sys->natoms; ++i) {
-              fscanf(fp, "%lf%lf%lf", sys->rx + i, sys->ry + i, sys->rz + i);
-          }
-          for (int i = 0; i < sys->natoms; ++i) {
-              fscanf(fp, "%lf%lf%lf", sys->vx + i, sys->vy + i, sys->vz + i);
-          }
-          fclose(fp);
-          azzero(sys->fx, sys->natoms);
-          azzero(sys->fy, sys->natoms);
-          azzero(sys->fz, sys->natoms);
-      } else {
-          perror("Cannot read restart file");
-          return 3;
-      }
-  
-      // Open the output files
-      *erg = fopen(ergfile, "w");
-      *traj = fopen(trajfile, "w");
-
-      return atoi(line); // returning the printing steps
-    #endif
 }
