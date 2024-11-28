@@ -4,10 +4,13 @@
 - Moreno Triana Jhon Sebastián
 - Redjil Abou Bakr Essadiq
 
-
 The main goal of this project is to optimize runtime of a molecular dynamics `C` program. 
-> [!IMPORTANT]
+
+> [!NOTE]
 > You can run the code using a serial version, OpenMPI version, or OpenMP version and a OpenMPI + OpenMP hybrid version. Enabled with compilation flags in the `CMakeLists.txt`.
+
+> [!IMPORTANT]
+> If you want to read directly the report just look at the `report.md` in docs/ or [click here](./docs/report.md).
 
 > [!CAUTION]
 > Please read the following instruction to know how to compile and run the project.

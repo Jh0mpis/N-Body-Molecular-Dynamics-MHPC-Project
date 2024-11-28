@@ -22,12 +22,14 @@ int main(int argc, char **argv) {
     
     mdsys_t sys;
     #ifdef ENABLE_OPENMPI
+      // initializing MPI 
       MPI_Init(&argc, &argv);
       int rank, nps;
 
       MPI_Comm_size(MPI_COMM_WORLD, &nps);
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
+      // Setting mpi variables
       sys.rank = rank;
       sys.nps = nps;
       sys.nthreads = 1;
@@ -45,6 +47,7 @@ int main(int argc, char **argv) {
 
 
     #ifdef ENABLE_OPENMP
+      // Setting up openMP variables
       #pragma omp parallel
       {
         int id_trhead = omp_get_thread_num();
@@ -80,6 +83,7 @@ int main(int argc, char **argv) {
     clean(&sys, &erg, &traj);
 
   #ifdef ENABLE_OPENMPI
+    // Finalizing MPI region
     MPI_Finalize();
   #endif
 
