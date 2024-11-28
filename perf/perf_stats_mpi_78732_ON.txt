@@ -1,0 +1,16 @@
+# started on Thu Nov 28 13:39:11 2024
+
+
+ Performance counter stats for 'mpirun -np 4 --allow-run-as-root ../build/bin/mpi_main.x':
+
+ 1,392,618,482,934      cycles                                                                
+ 4,641,062,522,475      instructions                     #    3.33  insn per cycle            
+    49,256,090,111      cache-references                                                      
+       985,712,583      cache-misses                     #    2.00% of all cache refs         
+
+     105.970699456 seconds time elapsed
+
+     421.417779000 seconds user
+       0.948306000 seconds sys
+
+
