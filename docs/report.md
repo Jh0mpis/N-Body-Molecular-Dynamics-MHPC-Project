@@ -62,7 +62,7 @@ The OpenMPI implementation employed message-passing parallelism for distributed-
 
 ### Hybrid Parallelization  
 
-The hybrid approach combined OpenMP and OpenMPI to exploit both shared-and distributed-memory architectures and reduce the communication time performed in the openMPI version. Key steps included:  
+The hybrid approach combined OpenMP and OpenMPI to exploit both shared-and distributed-memory architectures and reduce the communication time performed in the OpenMPI version. Key steps included:  
 
 1. **Intra-Node Parallelization**: OpenMP was used to parallelize computations within each node.  
 2. **Inter-Node Communication**: OpenMPI handled communication between nodes.  
@@ -73,25 +73,39 @@ This approach aimed to maximize performance.
 ---
 
 ## Results  
-To examine the performance of each approach, the code was excuted using 3 different input files corresponding to different number of atoms \(108, 2916, 78732\). The timing was collected, parsed, and then plotted in histograms. 
+
+To examine the performance of each approach, the code was executed using 3 different input files corresponding to different number of atoms $108, 2916, 78732$. The timing was collected, parsed, and then plotted in histograms. 
 
 ### Serial Performance 
-The runtime of the serial version of the code was plotted in a log scale histogram. The figure below shows the difference of timing for different number of atoms. As expected, the program needs more time as the size of the problem increases. The proptionality is linear due to the log scale   
-![alt text](../timing/serial_timing_histogram.png)
+
+The runtime of the serial version of the code was plotted in a log scale histogram. The figure below shows the difference of timing for different number of atoms. As expected, the program needs more time as the size of the problem increases. The proportionality is linear due to the log scale.   
+
+![Serial Performance](../timing/serial_timing_histogram.png)
+
 ### OpenMPI Performance
-The runtime was computed for varying number of process' from \(1\) to \(32\) on Leonardo. The results were then presented in two histograms, corresponding to the runtime and speedup vs number of processes for three problem size \(108, 2916, 78732\).
-![alt text](../timing/mpi_timing_histogram.png)
-![alt text](../timing/mpi_speedup_histogram.png)
-Observing the plots, it is clear that the runtime scales with the number of process'. The runtime histogram doesn't say much about the sample size of \(108\), however, by looking at the speedup plot, we immeditely notice the perforamnce of the code platus around at \(16\) processes, and the program is worst after that. Additionally, when using \(1\) to \(16\) process' the speed up increase is unsignificant for the sample sizes of \(2926\) and \(79732\), But, it becomes more noticable when using \(32\) process'
+
+The runtime was computed for varying number of process' from $1$ to $32$ on Leonardo. The results were then presented in two histograms, corresponding to the runtime and speedup vs number of processes for three problem size $108, 2916, 78732$.
+
+![timing MPI](../timing/mpi_timing_histogram.png)
+![Speedup MPI](../timing/mpi_speedup_histogram.png)
+
+Observing the plots, it is clear that the runtime scales with the number of process'. The runtime histogram doesn't say much about the sample size of $108$, however, by looking at the speedup plot, we immediately notice the performance of the code platus around at $16$ processes, and the program is worst after that. Additionally, when using $1$ to $16$ process' the speed up increase is unsignificant for the sample sizes of $2926$ and $79732$, But, it becomes more noticeable when using $32$ process'.
 
 ### OpenMP Performance
 
+A second approach to parallelization utilizes the shared memory paradigm,specifically employing OpenMP for threading.
+
 ![omp timing](../timing/omp_timing_histogram.png)
+
+We tested the implementation with powers of 2 threads counts, from 1 to 32 threads, and we measured the simulation time for each configuration. For 2916 and 78732 particles the OpenMP implementation demonstrated consistent scaling across all thread counts, achieving the fastest execution time with 32 threads. However, the system with 108 particles exhibited a different behavior: for example, using 32 threads was slower than using 16 nodes.
+
 ![omp speed-up](../timing/omp_speedup_histogram.png)
+
+The best performance was observed in the simulation with 78732 atoms, where the speed-up is over 25 with 32 threads. In general, the speed-up is increased for the 2916 and 78732 particle systems. Conversely, for the 108 particle system, the speed-up improved only when 2 threads are used; for more threads the performance degraded, becoming worst than the serial implementation.
 
 ### Hybrid Performance 
 
-To reduce the communication time in openMPI, we implemented the code to support a hybrid model using both openMP and openMPI simultaneously. Then, we compared the time for different process-threads combinations on the Leonardo cluster, considering different number of atoms. 
+To reduce the communication time in OpenMPI, we implemented the code to support a hybrid model using both OpenMP and OpenMPI simultaneously. Then, we compared the time for different process-threads combinations on the Leonardo cluster, considering different number of atoms. 
 
 ![hybrid timing](../timing/hybrid_timing_histogram.png)
 
@@ -112,25 +126,25 @@ Finally, we compared each optimization method:
 | OpenMPI           | 0.1399 | 3.6102  | 16.3669  | 6.2602 | 9.2417  | 11.7927 |
 | Hybrid            | 0.1729 | 3.5955  | 13.7019  | 5.0653 | 9.2795  | 14.0864 |
 
-We selected the best time for each method and calculated the corresponding speed-up for each simulation. Overall, the openMP performed best for simulations with a large number of particles, while OpenMPI showed better scaling for smaller particle systems.
+We selected the best time for each method and calculated the corresponding speed-up for each simulation. Overall, the OpenMP performed best for simulations with a large number of particles, while OpenMPI showed better scaling for smaller particle systems.
 
 **Simulation with 108 Particles**
 
 ![108-comparison](../timing/compare_methods_108.png)
 
-For the simulation system with 108 atoms, the openMPI implementation was the fastest,  achieving a speed-up of approximately 6.2. The OpenMP is the slowest, with a speed-up of around 2.28. The hybrid version performed comparably to openMPI, with a speed-up of 5.1.
+For the simulation system with 108 atoms, the OpenMPI implementation was the fastest,  achieving a speed-up of approximately 6.2. The OpenMP is the slowest, with a speed-up of around 2.28. The hybrid version performed comparably to OpenMPI, with a speed-up of 5.1.
 
 **Simulation with 2916 Particles**
 
 ![2916-comparison](../timing/compare_methods_2916.png)
 
-For the simulation with 2916 particles, openMP was the fastest, achieving a speed-up up to 12.24. The openMPI and hybrid implementations performed similarly, with speed-ups of between 9.24 and 2.27, respectively.
+For the simulation with 2916 particles, OpenMP was the fastest, achieving a speed-up up to 12.24. The OpenMPI and hybrid implementations performed similarly, with speed-ups of between 9.24 and 2.27, respectively.
 
 **Simulation with 78732 Particles**
 
 ![78732-comparison](../timing/compare_methods_78732.png)
 
-For largest data set, with 78732 atoms, the openMP implementation scaled the best, achieving a speed-up of 26.39. In contrast, the openMPI implementation was the slowest, with a speed-up of 11.79 using 32 process. The hybrid implementation fell in between, with a speed-up of 14.08.
+For largest data set, with 78732 atoms, the OpenMP implementation scaled the best, achieving a speed-up of 26.39. In contrast, the OpenMPI implementation was the slowest, with a speed-up of 11.79 using 32 process. The hybrid implementation fell in between, with a speed-up of 14.08.
 
 ## Discussion  
 
@@ -140,11 +154,11 @@ The optimization and parallelization efforts yielded significant performance imp
 
 The optimized serial version served as a crucial baseline for evaluating parallel performance. Key improvements included:
 
-    Elimination of Expensive Operations: Replacing functions like pow() and sqrt() with arithmetic operations significantly reduced computational overhead. These functions are computationally intensive, and their elimination led to measurable time savings.
+- Elimination of Expensive Operations: Replacing functions like pow() and sqrt() with arithmetic operations significantly reduced computational overhead. These functions are computationally intensive, and their elimination led to measurable time savings.
 
-    Exploiting Symmetry: Implementing Newton's third law in the force calculations halved the number of pairwise force computations. Instead of computing forces twice for each pair (once for each particle), we computed it once and applied equal and opposite forces, effectively reducing the computational complexity from $\mathcal{O}(N^2)$ to $\mathcal{O}(N(N-1)/2)$.
+- Exploiting Symmetry: Implementing Newton's third law in the force calculations halved the number of pairwise force computations. Instead of computing forces twice for each pair (once for each particle), we computed it once and applied equal and opposite forces, effectively reducing the computational complexity from $\mathcal{O}(N^2)$ to $\mathcal{O}(N(N-1)/2)$.
 
-    Loop Invariant Code Motion: Moving calculations that do not change within loops (loop invariants) outside of the loops reduced redundant computations, further enhancing performance.
+- Loop Invariant Code Motion: Moving calculations that do not change within loops (loop invariants) outside of the loops reduced redundant computations, further enhancing performance.
 
 ### Impact of Cache Utilization
 
@@ -158,11 +172,11 @@ An important factor influencing performance is how well the data fits into the C
 
 OpenMP introduced shared-memory parallelism, yielding substantial speed-ups, particularly for larger simulations:
 
-    Scalability with System Size: The speed-up increased with the number of particles, reaching up to 26.55 for 78,732 particles. Larger systems offer more computational work per thread, which improves the computation-to-overhead ratio and leads to better utilization of CPU cores.
+- Scalability with System Size: The speed-up increased with the number of particles, reaching up to 26.55 for 78,732 particles. Larger systems offer more computational work per thread, which improves the computation-to-overhead ratio and leads to better utilization of CPU cores.
 
-    Thread Overhead in Small Systems: For the 108-particle simulation, the speed-up was only 2.45. The overhead of spawning threads and synchronization outweighed the benefits due to the limited computational workload per thread.
+- Thread Overhead in Small Systems: For the 108-particle simulation, the speed-up was only 2.45. The overhead of spawning threads and synchronization outweighed the benefits due to the limited computational workload per thread.
 
-    Memory Bandwidth Limitations: As the number of threads increased, memory bandwidth became a bottleneck. With more threads accessing shared memory, contention increased, slightly diminishing returns when scaling to a high number of threads.
+- Memory Bandwidth Limitations: As the number of threads increased, memory bandwidth became a bottleneck. With more threads accessing shared memory, contention increased, slightly diminishing returns when scaling to a high number of threads.
 
 ### OpenMPI Parallelization
 
