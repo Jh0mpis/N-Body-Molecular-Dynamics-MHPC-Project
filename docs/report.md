@@ -9,20 +9,20 @@
 
 ## Introduction 
 
-This project focuses on optimizing and parallelizing a `C` program that simulates molecular dynamics in an \(N\)-Body classical system. The simulation utilizes the Lennard-Jones potential under periodic boundary conditions, which is mathematically defined as:
+This project focuses on optimizing and parallelizing a `C` program that simulates molecular dynamics in an $N$-Body classical system. The simulation utilizes the Lennard-Jones potential under periodic boundary conditions, which is mathematically defined as:
 
-\[
-V(r) = 4 \varepsilon \sum_{i \neq j}^{N} \left[ \left( \frac{\sigma}{r_{ij}} \right)^{12} - \left( \frac{\sigma}{r_{ij}} \right)^{6} \right]
-\]
+$$V(r) = 4 \varepsilon \sum_{i \neq j}^{N} \left[ \left( \frac{\sigma}{r_{ij}} \right)^{12} - \left( \frac{\sigma}{r_{ij}} \right)^{6} \right],$$
 
 where:  
-- \(r_{ij}\) is the distance between particles \(i\) and \(j\),  
-- \(\varepsilon\) represents the depth of the potential well, and  
-- \(\sigma\) is the characteristic distance at which the potential is zero.  
+
+- $r_{ij}$ is the distance between particles $i$ and $j$,  
+- $\varepsilon$ represents the depth of the potential well, and  
+- $\sigma$ is the characteristic distance at which the potential is zero.  
 
 The system is simulated in a cubic box with periodic boundary conditions, which ensures continuity across the system's edges. 
 
 The project was divided into three subtasks: **optimization**, **parallelization using OpenMP**, and **parallelization using OpenMPI**, followed by a hybrid implementation combining the two parallelization techniques. Team responsibilities were as follows:  
+
 - **Optimization**: Redjil Abou Bakr Essadiq  
 - **OpenMP Parallelization**: Feitosa Benevides André  
 - **OpenMPI Parallelization**: Moreno Triana Jhon Sebastián  
@@ -36,40 +36,39 @@ While individual members led specific subtasks, all team members contributed to 
 ### Optimization  
 
 The optimization task involved improving the computational efficiency of the original program. The following steps were taken:  
-1. **Code Refactoring**: The program was modularized into logically separated files, following the structure detailed in the [`README.md`](../README.md). This enhanced readability, maintainability, and ease of debugging.  
+
+1. **Code Refactoring**: The program was modularized into logically separated files, following the structure detailed in the [`README.md`](https://github.com/Jh0mpis/N-Body-Molecular-Dynamics-MHPC-Project/blob/main/README.md). This enhanced readability, maintainability, and ease of debugging.  
 2. **Replacing Expensive Operations**: Costly mathematical functions, such as `pow()` and `sqrt()`, were replaced with efficient alternatives using multiplications and inline arithmetic expressions.  
-3. **Invariant Expression Simplification**: Invariant calculations within loops in the `force` and `velverlet` functions were precomputed and stored as constants outside the loops to reduce redundant operations.  
+3. **Invariant Expression Simplification**: Invariant calculations within loops in the `force()` and `velverlet()` functions were precomputed and stored as constants outside the loops to reduce redundant operations.  
 4. **Compiler Optimization**: Optimization flags (e.g., `-O3` for aggressive optimization) were utilized to enable compiler-level performance improvements.  
-5. **Newton’s Third Law**: Symmetry in inter-particle forces (Newton’s third law) was exploited in the `force` function to minimize redundant computations.  
+5. **Newton’s Third Law**: Symmetry in inter-particle forces (Newton’s third law) was exploited in the `force()` function to minimize redundant computations.  
 
 These optimizations collectively reduced the computational overhead and enhanced the overall simulation efficiency.  
 
 ### Parallelization Using OpenMP  
 
 The OpenMP implementation introduced shared-memory parallelism to improve performance on multi-core systems. Key steps included:  
-1. **Loop Parallelization**: Computationally intensive loops, such as those in the `force` and `velverlet` functions, were parallelized using OpenMP directives (`#pragma omp parallel for`).  
-2. **Load Balancing**: Thread workloads were distributed evenly to avoid bottlenecks. Various scheduling strategies (e.g., `static`, `dynamic`) were tested to achieve optimal performance.  
-3. **Critical Section Reduction**: Shared resources were carefully managed to minimize the use of critical sections, which can cause thread contention and slowdowns.  
+
+1. **Loop Parallelization**: Computationally intensive loops, such as those in the `force()` and `velverlet()` functions, were parallelized using OpenMP directives (`#pragma omp parallel` and `#pragma omp parallel for` with `reduction`).  
+2. **Critical Section Reduction**: Shared resources were carefully managed to minimize the use of critical sections, which can cause thread contention and slowdowns.  
 
 This approach leveraged multi-threading to achieve significant speed-ups for simulations on shared-memory systems.  
 
 ### Parallelization Using OpenMPI  
 
 The OpenMPI implementation employed message-passing parallelism for distributed-memory architectures. The following techniques were applied:  
-1. **Domain Decomposition**: The simulation box was divided into smaller subdomains, with each process handling the particles within its assigned region.  
-2. **Boundary Exchange**: Neighboring subdomains exchanged boundary particle information to ensure accurate force calculations across subdomain boundaries.  
-3. **Communication Optimization**: Efficient MPI routines, such as non-blocking communication (`MPI_Isend`, `MPI_Irecv`), were used to overlap computation with communication.  
 
-The OpenMPI implementation allowed the program to scale effectively across multiple nodes in a distributed computing environment.  
+1. **Replicated data**: The simulation share the data in all the process using `MPI_Bcast()` function for the particles positions from process 0 to the other process. Then process a smaller region of the same data divided by chunks of data. In the `force()` function each process computes the interaction forces and the potential energy for $\frac{num_particles}{num_process}$ particles and the force produced over the other particles due to interaction, and finally, we recover the original data performing the `MPI_Reduce()` function to process `0`.
 
 ### Hybrid Parallelization  
 
-The hybrid approach combined OpenMP and OpenMPI to exploit both shared- and distributed-memory architectures. Key steps included:  
+The hybrid approach combined OpenMP and OpenMPI to exploit both shared-and distributed-memory architectures and reduce the communication time performed in the openMPI version. Key steps included:  
+
 1. **Intra-Node Parallelization**: OpenMP was used to parallelize computations within each node.  
 2. **Inter-Node Communication**: OpenMPI handled communication between nodes.  
 3. **Synchronization**: A careful balance between intra-node and inter-node workloads was maintained to minimize overheads and maximize resource utilization.  
 
-This approach aimed to maximize performance on high-performance computing (HPC) clusters.  
+This approach aimed to maximize performance.
 
 ---
 
