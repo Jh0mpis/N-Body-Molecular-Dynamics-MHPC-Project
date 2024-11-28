@@ -76,14 +76,28 @@ This approach aimed to maximize performance.
 
 ### Serial Performance 
 
+![serial timing](../timing/serial_timing_histogram.png)
+
 ### OpenMPI Performance
+
+![mpi timing](../timing/mpi_timing_histogram.png)
+![mpi speed-up](../timing/mpi_speedup_histogram.png)
 
 ### OpenMP Performance
 
+![omp timing](../timing/omp_timing_histogram.png)
+![omp speed-up](../timing/omp_speedup_histogram.png)
+
 ### Hybrid Performance 
+
+![hybrid timing](../timing/hybrid_timing_histogram.png)
+![hybrid speed-up](../timing/hybrid_speedup_histogram.png)
 
 ### Methods Comparison 
 
+![108-comparison](../timing/compare_methods_108.png)
+![2916-comparison](../timing/compare_methods_2916.png)
+![78732-comparison](../timing/compare_methods_78732.png)
 
 | Implementation    | Execution Time (s) | Speedup | Scalability |  
 |--------------------|---------------------|---------|-------------|  
@@ -92,7 +106,6 @@ This approach aimed to maximize performance.
 | OpenMPI           | A.AA               | B.BB    | High        |  
 | Hybrid            | C.CC               | D.DD    | Very High   |  
 
-(*Note: Replace placeholders with actual data from the experiments.*)
 
 ---
 
