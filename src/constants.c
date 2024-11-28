@@ -1,4 +1,4 @@
-#include "constants.h"
+#include "../include/constants.h"
 
 // Defining k Boltzmant constant
 const double kboltz = 0.0019872067;     /* Boltzmann constant in kcal/mol/K */
