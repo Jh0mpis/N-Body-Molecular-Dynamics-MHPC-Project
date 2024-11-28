@@ -38,7 +38,7 @@ While individual members led specific subtasks, all team members contributed to 
 The optimization task involved improving the computational efficiency of the original program. The following steps were taken:  
 
 1. **Code Refactoring**: The program was modularized into logically separated files, following the structure detailed in the [`README.md`](https://github.com/Jh0mpis/N-Body-Molecular-Dynamics-MHPC-Project/blob/main/README.md). This enhanced readability, maintainability, and ease of debugging.  
-2. **Replacing Expensive Operations**: Costly mathematical functions, such as `pow()` and `sqrt()`, were replaced with efficient alternatives using multiplications and inline arithmetic expressions.  
+2. **Replacing Expensive Operations**: Costly mathematical functions, such as `pow()` and `sqrt()`, were replaced with efficient alternatives using multiplications and inline arithmetic expressions. For example, instead of calculating $(r)^(-6)$, we computed $r2 = 1.0 / (r * r)$; $r6 = r2inv * r2inv * r2inv$;
 3. **Invariant Expression Simplification**: Invariant calculations within loops in the `force()` and `velverlet()` functions were precomputed and stored as constants outside the loops to reduce redundant operations.  
 4. **Compiler Optimization**: Optimization flags (e.g., `-O3` for aggressive optimization) were utilized to enable compiler-level performance improvements.  
 5. **Newton’s Third Law**: Symmetry in inter-particle forces (Newton’s third law) was exploited in the `force()` function to minimize redundant computations.  
@@ -49,8 +49,8 @@ These optimizations collectively reduced the computational overhead and enhanced
 
 The OpenMP implementation introduced shared-memory parallelism to improve performance on multi-core systems. Key steps included:  
 
-1. **Loop Parallelization**: Computationally intensive loops, such as those in the `force()` and `velverlet()` functions, were parallelized using OpenMP directives (`#pragma omp parallel` and `#pragma omp parallel for` with `reduction`).  
-2. **Critical Section Reduction**: Shared resources were carefully managed to minimize the use of critical sections, which can cause thread contention and slowdowns.  
+1. **Loop Parallelization**: Computationally intensive loops, especially those in the `force()`, but also in `velverlet()` functions, were parallelized using OpenMP directives (`#pragma omp parallel` and `#pragma omp parallel for` appropriate reduction clauses for shared variables, in this case the potential energy.
+2. **Critical Section Reduction**: Shared resources were carefully managed to minimize the use of critical sections, which can cause thread contention and slowdowns. We used private copies of the potential energy and for the force we stored the results from each thread in a big array of size `nthreads * natoms`.
 
 This approach leveraged multi-threading to achieve significant speed-ups for simulations on shared-memory systems.  
 
@@ -73,15 +73,16 @@ This approach aimed to maximize performance.
 ---
 
 ## Results  
+To examine the performance of each approach, the code was excuted using 3 different input files corresponding to different number of atoms \(108, 2916, 78732\). The timing was collected, parsed, and then plotted in histograms. 
 
 ### Serial Performance 
-
-![serial timing](../timing/serial_timing_histogram.png)
-
+The runtime of the serial version of the code was plotted in a log scale histogram. The figure below shows the difference of timing for different number of atoms. As expected, the program needs more time as the size of the problem increases. The proptionality is linear due to the log scale   
+![alt text](../timing/serial_timing_histogram.png)
 ### OpenMPI Performance
-
-![mpi timing](../timing/mpi_timing_histogram.png)
-![mpi speed-up](../timing/mpi_speedup_histogram.png)
+The runtime was computed for varying number of process' from \(1\) to \(32\) on Leonardo. The results were then presented in two histograms, corresponding to the runtime and speedup vs number of processes for three problem size \(108, 2916, 78732\).
+![alt text](../timing/mpi_timing_histogram.png)
+![alt text](../timing/mpi_speedup_histogram.png)
+Observing the plots, it is clear that the runtime scales with the number of process'. The runtime histogram doesn't say much about the sample size of \(108\), however, by looking at the speedup plot, we immeditely notice the perforamnce of the code platus around at \(16\) processes, and the program is worst after that. Additionally, when using \(1\) to \(16\) process' the speed up increase is unsignificant for the sample sizes of \(2926\) and \(79732\), But, it becomes more noticable when using \(32\) process'
 
 ### OpenMP Performance
 
@@ -94,7 +95,7 @@ To reduce the communication time in openMPI, we implemented the code to support 
 
 ![hybrid timing](../timing/hybrid_timing_histogram.png)
 
-For the hybrid version, we tested with 1 process and 32 threads, which is the slowest for each particle size. We then gradually decreased the thread number until 32 process and 1 thread, where we observed the optimal performance for our tests. The results show that the hybrid implementation continues to scale, and we did not identify a combination where the simulation time stops decreasing.
+For the hybrid version, we tested with 1 process and 32 threads, which is the slowest for each particle size. We then gradually decreased the thread number while increasing the number of processes, such that the producs `nthreads * nprocesses = 32`. We tested until different cases until the other extreme: 32 process and 1 thread. The results show that within this constraints the hybrid implementation gets faster as we increase the number of processes and decrease the number of threads.
 
 ![hybrid speed-up](../timing/hybrid_speedup_histogram.png)
 
@@ -133,12 +134,100 @@ For largest data set, with 78732 atoms, the openMP implementation scaled the bes
 
 ## Discussion  
 
-The optimization significantly reduced computational overhead, providing a solid baseline for parallel implementations. OpenMP demonstrated good speed-ups on multi-core systems but was limited by memory bandwidth and thread contention for large systems. OpenMPI exhibited excellent scalability for distributed-memory systems, particularly for large problem sizes. The hybrid approach delivered the best performance by efficiently utilizing both shared and distributed memory resources, though it introduced additional complexity in implementation and debugging.
+The optimization and parallelization efforts yielded significant performance improvements across all simulation sizes. This section provides a critical analysis of where improvements were observed and explores the underlying reasons.
+
+### Optimization Improvements
+
+The optimized serial version served as a crucial baseline for evaluating parallel performance. Key improvements included:
+
+    Elimination of Expensive Operations: Replacing functions like pow() and sqrt() with arithmetic operations significantly reduced computational overhead. These functions are computationally intensive, and their elimination led to measurable time savings.
+
+    Exploiting Symmetry: Implementing Newton's third law in the force calculations halved the number of pairwise force computations. Instead of computing forces twice for each pair (once for each particle), we computed it once and applied equal and opposite forces, effectively reducing the computational complexity from $\mathcal{O}(N^2)$ to $\mathcal{O}(N(N-1)/2)$.
+
+    Loop Invariant Code Motion: Moving calculations that do not change within loops (loop invariants) outside of the loops reduced redundant computations, further enhancing performance.
+
+### Impact of Cache Utilization
+
+An important factor influencing performance is how well the data fits into the CPU caches, particularly the L1 cache:
+
+- Small Problem Sizes and Cache Efficiency: For simulations with a small number of particles (e.g., 108 particles), the arrays and data structures used in the simulation are small enough to fit entirely within the L1 cache. This results in faster data access times, as the CPU can retrieve data from the cache rather than slower main memory. This high cache hit rate contributes to better performance in the serial and OpenMPI implementations for small problem sizes.
+
+- Large Problem Sizes and Cache Misses: As the number of particles increases (e.g., 78,732 particles), the data structures exceed the size of the L1 cache (typically around 32KB to 64KB per core). Consequently, cache misses become more frequent, and the CPU must fetch data from the slower L2 cache, L3 cache, or main memory. This increased memory access latency can degrade performance, especially in memory-intensive applications like molecular dynamics simulations.
+
+### OpenMP Parallelization
+
+OpenMP introduced shared-memory parallelism, yielding substantial speed-ups, particularly for larger simulations:
+
+    Scalability with System Size: The speed-up increased with the number of particles, reaching up to 26.55 for 78,732 particles. Larger systems offer more computational work per thread, which improves the computation-to-overhead ratio and leads to better utilization of CPU cores.
+
+    Thread Overhead in Small Systems: For the 108-particle simulation, the speed-up was only 2.45. The overhead of spawning threads and synchronization outweighed the benefits due to the limited computational workload per thread.
+
+    Memory Bandwidth Limitations: As the number of threads increased, memory bandwidth became a bottleneck. With more threads accessing shared memory, contention increased, slightly diminishing returns when scaling to a high number of threads.
+
+### OpenMPI Parallelization
+
+MPI leveraged distributed-memory parallelism, with performance varying based on system size:
+
+- Efficiency in Small Systems: OpenMPI achieved the highest speed-up (6.72) for the 108-particle simulation. The distribution of particles across processes reduced the per-process computational load, and the relatively small amount of data minimized communication overhead.
+
+- Communication Overhead in Large Systems: As the number of particles increased, the amount of data that needed to be communicated between processes grew significantly. For the 78,732-particle simulation, the speed-up was 11.86, less than half of OpenMP's speed-up. The increased communication time due to exchanging large data volumes over the network offset some of the benefits of parallel computation.
+
+- Latency vs. Throughput: MPI's performance is sensitive to network latency and bandwidth. While it can handle large data transfers, the latency associated with initiating communications can become significant, especially when frequent synchronization is required.
+
+### Hybrid Parallelization
+
+The hybrid implementation aimed to combine the strengths of both OpenMP and MPI:
+
+- Balanced Workload: By using multiple processes with multiple threads, we attempted to optimize both intra-node and inter-node parallelism. This approach mitigated some of the communication overhead seen in the pure MPI implementation by reducing the number of processes and increasing the computation per process through threading.
+
+- Optimal Configuration: Our tests indicated that the configuration with 32 processes and 1 thread per process offered the best performance. This setup minimized the communication overhead by reducing the number of threads contending for shared memory within a node and leveraging more processes to distribute the workload.
+
+- Complexity and Overhead: Despite the improved performance, the hybrid model introduced additional complexity in managing both threading and inter-process communication. Synchronization between threads and processes added overhead, and achieving efficient load balancing was more challenging.
+
+### Critical Analysis of Performance Improvements
+
+- Cache Hierarchy Impact: The performance differences observed across simulations of varying sizes highlight the importance of cache hierarchy in high-performance computing. Small datasets that fit within the L1 cache benefit from faster data access, leading to better performance in both serial and MPI implementations for small problem sizes.
+
+- Computational Intensity: The performance gains were more pronounced in simulations with higher computational intensity (i.e., larger particle counts). This is because the overhead associated with parallelization (thread/process management, synchronization, communication) is amortized over a larger amount of computation.
+
+- Computational Intensity vs. Memory Access: In larger simulations, the computational intensity increases, but so does the volume of data that must be accessed from slower memory levels. OpenMP's shared-memory model benefits from faster intra-node memory access compared to inter-node communication in MPI, which is why OpenMP outperforms MPI in large simulations despite potential cache misses.
+
+- Communication vs. Computation Trade-off: OpenMP excelled in minimizing communication overhead due to shared memory, making it ideal for compute-bound applications. In contrast, MPI's performance was hindered in large systems by communication costs, which became a significant portion of the total execution time.
+
+- Load Balancing: Ensuring even distribution of particles and workload was crucial. Imbalances led to some processes or threads finishing earlier and waiting for others, reducing overall efficiency. Our implementations attempted to distribute particles evenly, but inherent data dependencies and interaction patterns sometimes caused uneven workloads.
+
+- Scalability Limits: OpenMP scalability was limited by the number of available cores and memory bandwidth. Beyond a certain number of threads, adding more did not result in significant speed-ups. MPI scalability was limited by network performance and the efficiency of communication patterns.
+
+### Why Certain Methods Performed Better
+
+- OpenMP's Advantage in Large Systems: For large simulations, the computational workload per thread was substantial, allowing OpenMP to utilize all CPU cores effectively without significant overhead from thread management or memory contention.
+
+- MPI's Strength in Small Systems: MPI was able to distribute the small computational workload efficiently across processes with minimal communication overhead, outperforming OpenMP in the smallest simulation.
+
+- Hybrid Model's Middle Ground: The hybrid approach balanced the computational workload and communication needs, performing consistently across different system sizes but not necessarily outperforming the best specialized method in each case.
 
 ---
 
 ## Conclusion  
 
-This project successfully optimized and parallelized the molecular dynamics simulation using a combination of OpenMP, OpenMPI, and hybrid techniques. The results demonstrated the potential for significant performance gains through careful code optimization and parallelization. Future work could explore GPU acceleration using CUDA or HIP to further improve performance for even larger systems.  
+This project successfully optimized and parallelized the molecular dynamics simulation using a combination of OpenMP, OpenMPI, and hybrid techniques. The key findings are:
+
+- Optimization Effectiveness: Code optimization can be a significant headstart for reducing execution times by eliminating algorithmic efficiencies.
+
+- OpenMP's Strength in Large-Scale Simulations: OpenMP achieved the highest speed-ups in large simulations due to efficient multi-threading and low communication overhead in shared-memory architectures.
+
+- OpenMPI's Suitability for Smaller Systems: OpenMPI performed best in small-scale simulations where communication overhead was minimal, effectively distributing the workload across processes.
+
+- Hybrid Approach as a Compromise: The hybrid method provided balanced performance across different system sizes, combining intra-node threading with inter-node processing, though it introduced additional complexity.
+
+### Implications
+
+Our results seem to indicate a particular way of selecting the appropriate parallelization strategy based on the problem size and computational resources:
+
+- Large Simulations: Utilize OpenMP to maximize core utilization with minimal communication overhead.
+
+- Small Simulations: Leverage MPI to distribute computations efficiently without significant communication costs.
+
+- Variable Workloads: Consider a hybrid approach when the computational workload and system architecture can benefit from both threading and distributed processing.
 
 ---
