@@ -74,13 +74,16 @@ This approach aimed to maximize performance.
 
 ## Results  
 
-### Performance Metrics  
-The performance of each implementation was measured in terms of:  
-- **Execution Time**: The total time required to complete a simulation.  
-- **Speedup**: The ratio of the execution time of the original sequential code to that of the parallelized version.  
-- **Scalability**: The ability of the program to handle increasing problem sizes or additional computational resources effectively.  
+### Serial Performance 
 
-### Comparison  
+### OpenMPI Performance
+
+### OpenMP Performance
+
+### Hybrid Performance 
+
+### Methods Comparison 
+
 
 | Implementation    | Execution Time (s) | Speedup | Scalability |  
 |--------------------|---------------------|---------|-------------|  
