@@ -1,0 +1,16 @@
+# started on Thu Nov 28 14:24:07 2024
+
+
+ Performance counter stats for 'mpirun -np 4 --allow-run-as-root -x OMP_NUM_THREADS=2 ../build/bin/hybrid_main.x':
+
+   243,148,751,453      cycles                                                                
+   318,581,528,360      instructions                     #    1.31  insn per cycle            
+     1,322,405,727      cache-references                                                      
+       124,538,645      cache-misses                     #    9.42% of all cache refs         
+
+      10.123057149 seconds time elapsed
+
+      62.384651000 seconds user
+       0.552536000 seconds sys
+
+
