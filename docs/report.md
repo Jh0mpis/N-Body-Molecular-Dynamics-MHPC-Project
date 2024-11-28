@@ -90,24 +90,46 @@ This approach aimed to maximize performance.
 
 ### Hybrid Performance 
 
+To reduce the communication time in openMPI, we implemented the code to support a hybrid model using both openMP and openMPI simultaneously. Then, we compared the time for different process-threads combinations on the Leonardo cluster, considering different number of atoms. 
+
 ![hybrid timing](../timing/hybrid_timing_histogram.png)
+
+For the hybrid version, we tested with 1 process and 32 threads, which is the slowest for each particle size. We then gradually decreased the thread number until 32 process and 1 thread, where we observed the optimal performance for our tests. The results show that the hybrid implementation continues to scale, and we did not identify a combination where the simulation time stops decreasing.
+
 ![hybrid speed-up](../timing/hybrid_speedup_histogram.png)
+
+In terms of speed-up, while perfect scaling was not achieved, the hybrid implementation still increasing in speed-up. For example, we observed a speed-up close to 14 using 32 process and 1 thread. Furthermore, the hybrid version showed better performance as the number of atoms in the simulation increased.
 
 ### Methods Comparison 
 
+Finally, we compared each optimization method:
+
+| Implementation    | 108 Timing (s) | 2916 Timing (s) | 78732 Timing (s) | 108 Speedup | 2816 Speedup | 78732 Speedup  |
+|-------------------|--------|---------|----------|--------|---------|---------|
+| Optimized (Seq.)  | 0.8758 | 33.3646 | 193.0099 | 1.0000 | 1.0000  | 1.0000  |
+| OpenMP            | 0.3830 | 2.7248  | 7.3134   | 2.2867 | 12.2448 | 26.3913 |
+| OpenMPI           | 0.1399 | 3.6102  | 16.3669  | 6.2602 | 9.2417  | 11.7927 |
+| Hybrid            | 0.1729 | 3.5955  | 13.7019  | 5.0653 | 9.2795  | 14.0864 |
+
+We selected the best time for each method and calculated the corresponding speed-up for each simulation. Overall, the openMP performed best for simulations with a large number of particles, while OpenMPI showed better scaling for smaller particle systems.
+
+**Simulation with 108 Particles**
+
 ![108-comparison](../timing/compare_methods_108.png)
+
+For the simulation system with 108 atoms, the openMPI implementation was the fastest,  achieving a speed-up of approximately 6.2. The OpenMP is the slowest, with a speed-up of around 2.28. The hybrid version performed comparably to openMPI, with a speed-up of 5.1.
+
+**Simulation with 2916 Particles**
+
 ![2916-comparison](../timing/compare_methods_2916.png)
+
+For the simulation with 2916 particles, openMP was the fastest, achieving a speed-up up to 12.24. The openMPI and hybrid implementations performed similarly, with speed-ups of between 9.24 and 2.27, respectively.
+
+**Simulation with 78732 Particles**
+
 ![78732-comparison](../timing/compare_methods_78732.png)
 
-| Implementation    | Execution Time (s) | Speedup | Scalability |  
-|--------------------|---------------------|---------|-------------|  
-| Optimized (Seq.)   | X.XX               | 1.00    | N/A         |  
-| OpenMP            | Y.YY               | Z.ZZ    | Moderate    |  
-| OpenMPI           | A.AA               | B.BB    | High        |  
-| Hybrid            | C.CC               | D.DD    | Very High   |  
-
-
----
+For largest data set, with 78732 atoms, the openMP implementation scaled the best, achieving a speed-up of 26.39. In contrast, the openMPI implementation was the slowest, with a speed-up of 11.79 using 32 process. The hybrid implementation fell in between, with a speed-up of 14.08.
 
 ## Discussion  
 
