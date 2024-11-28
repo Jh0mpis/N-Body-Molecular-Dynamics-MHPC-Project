@@ -4,10 +4,36 @@
 - Moreno Triana Jhon Sebastián
 - Redjil Abou Bakr Essadiq
 
-This project is a N-Body molecular dynamic implementation using the `c` programming language. The main goal is to optimize the code and make it fast and efficient as possible.
+This project is a N-Body molecular dynamic implementation using the `C` programming language. The main goal is to optimize the code and make it fast and efficient as possible.
 
 > [!IMPORTANT]
 > The project can be run using a serial version, OpenMPI version, OpenMP version and a OpenMPI + OpenMP hybrid version and enable it using compilation flags.
+
+> [!CAUTION]
+> Please read the following instruction to know how to compile and run the project.
+
+## Index
+
+- [Cloning the repository](#cloning-the-repository)
+- [Project folder architecture](#project-folder-architecture)
+- [Compile the project](#compile-the-project)
+    - [Optimization flags](#optimization-flags)
+    - [Compiling with OpenMPI](#compilingwith-openmpi)
+    - [Compiling with OpenMP](#compiling-with-openmp)
+    - [Hybrid version](#hybrid-version)
+    - [Enabling and disabling multifile](#enabling-and-disabling-multifile)
+- [Run the project](#run-the-project)
+    - [Run with the multifile](#run-with-the-multifile)
+    - [Run without the multifile](#run-without-the-multifile)
+- [Testing the project](#testing-the-project)
+
+## Cloning the repository
+
+The repository is public, so you can clone into your local using:
+
+```
+git clone https://github.com/Jh0mpis/N-Body-Molecular-Dynamics-MHPC-Project.git
+```
 
 ## Project folder architecture
 
@@ -22,6 +48,7 @@ When you run the `cmake -S <source-fodler-path> -B <build-folder-path> <addition
 ├── README.md
 ├── .gitignore
 ├── GTest.cmake
+├── run.sh/
 ├── include/
 │   ├── constants.h
 │   ├── force_compute.h
@@ -152,6 +179,66 @@ or with the ccmake tool.
 
 ## Run the project
 
+### Run with the multifile
 
+> [!WARNING]
+> In order to make it work properly you build folder should be called `build` otherwise the `run.sh` script is not going to work.
+
+> [!CAUTION]
+> Please be sure that the files are compiled previously.
+
+In the project's root folder (`./`) there's a bash script called `run.sh`, you can use it in the following way
+
+```
+bash ./run.sh <version> <file_name> <num_treads or process> <num_process>
+```
+
+where,
+
+- ***<version>*** is one of the following values
+    - **serial**: For run the optimized serial version.
+    - **mpi**: For run the optimized openMPI version.
+    - **omp**: For run the optimized openMP verison.
+    - **hybrid**: For run the hybrid openMPI + openMP version.
+    - **latest**: For run the latest available option (depend on the enabled compilation flags).
+    - **all**: For run all the available versions (depend on the enabled compilation flags).
+- ***<file_name> is the name of the input file inside of examples folder including the extension. You can use the word `all` for run with all the `.inp` files in examples folder.
+- ***<num_treads or num_process>*** the number of treads if openMP or the hybrid version is enabled, number of process if just openMPI is enabled.
+- ***<num_process>*** if the hybrid version is the target.
+
+### Run without the multifile
+
+For run with just the main.x file you need to run with the following steps:
+
+**If openMP is enabled**
+
+```
+export OMP_NUM_THREADS=<num_treads>
+```
+
+where ***<num_treads>*** is the number of threads that you want to use.
+
+**If openMPI is enabled**
+
+```
+cd examples
+mpirun -np <num_process> <build_folder-path>/bin/main.x < <file_name>
+```
+
+where,
+
+- ***<num_process>*** is the number of process to use for the simulation.
+- ***<build-folder-path>*** is the relative path from `examples/` folder to the build folder.
+- ***<file_name>*** is the input file's name.
+
+**If openMPI is disabled**
+
+```
+cd examples
+<build_folder-path>/bin/main.x < <file_name>
+```
+
+- ***<build-folder-path>*** is the relative path from `examples/` folder to the build folder.
+- ***<file_name>*** is the input file's name.
 
 ## Testing the project
