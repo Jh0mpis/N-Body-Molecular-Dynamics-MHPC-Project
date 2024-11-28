@@ -6,7 +6,7 @@
 #include "../include/force_compute.h"             // Force and kinetic energy functions header file
 
 void velverlet(mdsys_t *sys) {
-    /* First part: propagate velocities by half and positions by full step */
+    // First part: propagate velocities by half and positions by full step
     const double register denom = 0.5 * sys->dt / (mvsq2e*sys->mass); 
     #ifdef ENABLE_OPENMP
     #pragma omp parallel for
@@ -21,10 +21,10 @@ void velverlet(mdsys_t *sys) {
         sys->rz[i] += sys->dt * sys->vz[i];
     }
 
-    /* Compute forces and potential energy */
+    // Compute forces and potential energy
     force(sys);
 
-    /* Second part: propagate velocities by another half step */
+    // Second part: propagate velocities by another half step
     #ifdef ENABLE_OPENMP
     #pragma omp parallel for
     #endif

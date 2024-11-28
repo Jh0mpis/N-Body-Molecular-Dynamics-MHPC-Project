@@ -5,7 +5,7 @@
 #include "../include/input.h"       // input functions header file
 #include "../include/constants.h"   // constants definition header file
 #include "../include/mdsys.h"       // struct definition header file
-#include "../include/utilities.h"   // wallclock, pbc and azzero functions header file
+#include "../include/utilities.h"   // wallclock and azzero functions header file
 #ifdef ENABLE_OPENMPI
   #include <mpi.h>
 #endif
@@ -14,6 +14,7 @@
 static int get_a_line(FILE *fp, char *buf) {
     char tmp[BLEN], *ptr;
 
+    // reading each line of the input file
     if (fgets(tmp, BLEN, fp)) {
         unsigned int i;
 
@@ -36,13 +37,15 @@ static int get_a_line(FILE *fp, char *buf) {
 // Read the entire file and associated files
 int read_input_files(mdsys_t *sys, FILE **erg, FILE **traj){
    
+      // Defining buffers
       char restfile[BLEN], line[BLEN];
       char trajfile[BLEN], ergfile[BLEN];
       FILE *fp;
       int nprint;
       
+    // Read input file and setting some system properties
     #ifdef ENABLE_OPENMPI
-      /* Read input file and setting some system properties */
+      // If mpi just rank 0 reads
       if(!sys->rank){
     #endif //ENABLE_OPENMPI
         if (get_a_line(stdin, line)) return -1;
@@ -69,28 +72,7 @@ int read_input_files(mdsys_t *sys, FILE **erg, FILE **traj){
         if (get_a_line(stdin, line)) return -1;
         nprint = atoi(line);
 
-    #ifdef ENABLE_OPENMPI
-      }    
-
-      MPI_Bcast(&(sys->natoms), 1, MPI_INT, 0, MPI_COMM_WORLD);
-      MPI_Bcast(&(sys->mass), 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-      MPI_Bcast(&(sys->epsilon), 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-      MPI_Bcast(&(sys->sigma), 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-      MPI_Bcast(&(sys->rcut), 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-      MPI_Bcast(&(sys->box), 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-      MPI_Bcast(&(sys->dt), 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-      MPI_Bcast(&(sys->nsteps), 1, MPI_INT, 0, MPI_COMM_WORLD);
-      MPI_Bcast(&nprint, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
-      sys->local_size = sys->natoms / sys->nps;
-      sys->offset = 0;
-      if(sys->rank < sys->natoms % sys->nps){
-        sys->local_size++;
-      }else{
-        sys->offset = sys->natoms % sys->nps;
-      }
-    #endif /* ifdef ENABLE_OPENMPI */
-      /* Allocate memory */
+      // Allocate memory
       sys->rx = (double *)malloc(sys->natoms * sizeof(double));
       sys->ry = (double *)malloc(sys->natoms * sizeof(double));
       sys->rz = (double *)malloc(sys->natoms * sizeof(double));
@@ -102,6 +84,7 @@ int read_input_files(mdsys_t *sys, FILE **erg, FILE **traj){
       sys->fz = (double *)malloc(sys->natoms * sizeof(double));
 
     #if defined(ENABLE_OPENMPI) || defined(ENABLE_OPENMP)
+      // Allocate memory for the new array
       sys->cx = (double *)malloc(sys->nthreads * sys->natoms * sizeof(double));
       sys->cy = (double *)malloc(sys->nthreads * sys->natoms * sizeof(double));
       sys->cz = (double *)malloc(sys->nthreads * sys->natoms * sizeof(double));
@@ -111,7 +94,7 @@ int read_input_files(mdsys_t *sys, FILE **erg, FILE **traj){
     #ifdef ENABLE_OPENMPI
       if(!sys->rank){
     #endif // ENABLE_OPENMPI
-        /* Read restart */
+        // Read restart
         fp = fopen(restfile, "r");
         if (fp) {
             for (int i = 0; i < sys->natoms; ++i) {
