@@ -4,10 +4,10 @@
 - Moreno Triana Jhon Sebastián
 - Redjil Abou Bakr Essadiq
 
-This project is a N-Body molecular dynamic implementation using the `C` programming language. The main goal is to optimize the code and make it fast and efficient as possible.
 
+The main goal of this project is to optimize runtime of a molecular dynamics `C` program. 
 > [!IMPORTANT]
-> The project can be run using a serial version, OpenMPI version, OpenMP version and a OpenMPI + OpenMP hybrid version and enable it using compilation flags.
+> You can run the code using a serial version, OpenMPI version, or OpenMP version and a OpenMPI + OpenMP hybrid version. Enabled with compilation flags in the `CMakeLists.txt`.
 
 > [!CAUTION]
 > Please read the following instruction to know how to compile and run the project.
@@ -43,9 +43,9 @@ git clone https://github.com/Jh0mpis/N-Body-Molecular-Dynamics-MHPC-Project.git
 
 ---
 
-The location of the `main.c` file is in the root folder `./` along with the `CMakeLists.txt`, the project is split in several modules, the source code is inside of `./src` folder while the header files are included in `./include`. The project includes some example data for testing the outputs, these examples are inside the `./examples` folder and the reference data is inside `./reference` folder.
+The `main.c` file is located int the root folder `./` along with the `CMakeLists.txt`, the code is split modules/. Source code inside `./src`. While, the header files are included in `./include`. Some example data is included for testing the excutables in `./examples`, and reference data for comparision in `./reference`.
 
-When you run the `cmake -S <source-fodler-path> -B <build-folder-path> <additional-setup-flags>`, the cmake tool will create a `./build` folder with the binary files, the executables will be created inside the `./build/bin` folder.
+Running `cmake -S <source-fodler-path> -B <build-folder-path> <additional-setup-flags>` in the command line will create a `./build` folder with the binary files, the executables will be inside the `./build/bin`.
 
 ```
 ./
@@ -87,11 +87,10 @@ When you run the `cmake -S <source-fodler-path> -B <build-folder-path> <addition
 └── reference/
 ```
 
-## Compile the project
+## Compile The Project
 
----
 
-The project can be compiled using the `cmake` tool. The `CMakeLists.txt` is in the root folder (`./`). You can create the build folder running the following command in the root folder:
+To compiled the project `cmake` tool was used. To create the build folder run the following command from the root folder:
 
 ```
 cmake -S . -B ./build
@@ -103,43 +102,42 @@ Then, for build the executables we can run:
 cmake --build ./build
 ```
 
-And finally, the executables are inside of `./build/bin` folder.
+Finally, the executables will be generated inside of `./build/bin` folder.
 
 ### Optimization flags
 
-In order to test the improvement with and without compiler optimization flags the `CMakeLists.txt` has the option `OPTIMIZATION_FLAGS` that is `ON` by default. You can set the variable using the following command.
+`CMakeLists.txt` has the option `OPTIMIZATION_FLAGS` `ON` by default. You can set the variable using the following command to view the perforamnce of the code with and without optimization flags. 
 
 ```
 cmake -S . -B ./build -DOPTIMIZATION_FLAG=ON(or OFF) <additional-setup-flags>
 ```
 
-or using the ccmake tool. 
+Alternatively, you can use ccmake tool. 
 
 > [!IMPORTANT]
 > We suggest to enable it always. 
 
 > [!IMPORTANT]
-> It will create an executable called `main.x` in the `<build-folder>/bin/` folder.
+> To generate an excutable, run `cmake --build ./build`, this will create executable called `main.x` in `<build-folder>/bin/`.
 
 ### Compiling with OpenMPI
 
-The project can run using different parallelization strategies, the first one is the distributed memory approach using OpenMPI. For enable the OpenMPI functionality you have to add the `ENABLE_OMPI` flag, that is `OFF` by default, and put it in `ON` using
+To run the code using OpenMPI, enable the `ENABLE_OMPI` flag, by setting it to `ON` in the `CMakeLists.txt`. Or by running the following command line. 
 
 ```
 cmake -S . -B ./build -DENABLE_OMPI=ON(or OFF) <additional-setup-flags>
 ```
 
-or using the ccmake tool.
-
+or using the `ccmake` tool. 
 > [!WARNING]
-> The `ENABLE_OMPI` flag is `OFF` by default, you have to set it on.
+> The `ENABLE_OMPI` flag is `OFF` by default.
 
 > [!IMPORTANT]
-> It will create an executable called `mpi_main.x` in the `<build-folder>/bin/` folder.
+> To generate an excutable, run `cmake --build ./build`, this will create executable called `mpi_main.x` in `<build-folder>/bin/`.
 
 ### Compiling with OpenMP
 
-Also the project can be run using a shared memory approach with OpenMP. You can enable it using the `ENABLE_OMP` flag and turn it `ON` using 
+To run using OpenMP, enable it in the `CMakeLists.txt` by setting `ENABLE_OMP` flag to `ON`, or by running the following command line 
 
 ```
 cmake -S . -B ./build -DENABLE_OMP=ON(or OFF) <additional-setup-flags>
@@ -148,28 +146,28 @@ cmake -S . -B ./build -DENABLE_OMP=ON(or OFF) <additional-setup-flags>
 or using the ccmake tool.
 
 > [!WARNING]
-> The `ENABLE_OMP` flag is `OFF` by default, you have to set it on.
+> `ENABLE_OMP` is `OFF` by default.
 
 > [!IMPORTANT]
-> It will create an executable called `omp_main.x` in the `<build-folder>/bin/` folder.
+> To generate an excutable, run `cmake --build ./build`, this will create executable called `omp_main.x` in `<build-folder>/bin/`.
 
 ### Hybrid version
 
-If `ENABLE_OMPI` and `ENABLE_OMP` are `ON`, the cmake tool will generate an additional executable that can run with OpenMP and OpenMPI at the same time, this is called the hybrid version, for enable the two flags at the same time you need to run 
+When both `ENABLE_OMPI` and `ENABLE_OMP` are `ON`, the cmake tool will generate an additional executable that runs with OpenMP and OpenMPI simulatniously, called hybrid version. To enable both flags from the command line, run 
 
 ```
 cmake -S . -B ./build -DENABLE_OMP=ON -DENABLE_OMPI=ON <additional-setup-flags>
 ```
 
-or using the ccmake tool.
+or using the `ccmake` tool.
 
 > [!WARNING]
 > The `ENABLE_OMP` and `ENABLE_OMPI` flags are `OFF` by default, you have to set it on.
 
 > [!IMPORTANT]
-> It will create an executable called `hybrid_main.x` in the `<build-folder>/bin/` folder.
+> To generate an excutable, run `cmake --build ./build`, this will create executable called `hybrid_main.x` in `<build-folder>/bin/`.
 
-### Enabling and disabling multifile
+### Enabling and Disabling Multifile
 
 The project creates multiple executable files by default, however, this option can be turn off using the `MULTIFILE` flag and turn it to `OFF` using
 
@@ -183,7 +181,7 @@ or with the ccmake tool.
 > The `MULTIFILE` flag is `ON` by default, you have to set it off if you want to.
 
 > [!IMPORTANT]
-> It will create just one executable called `main.x` in the `<build-folder>/bin/` folder with the latest version depending in what is available in the cmake.
+> Running `cmake --build ./build` will create only one executable `main.x` in the `<build-folder>/bin/` with the latest version depending in what is available in the `cmake`.
 
 ## Run the project
 
@@ -254,3 +252,14 @@ cd examples
 ## Testing the project
 
 ---
+The testing flags are enabled by default in the `CMakeLists.txt`. To disable them changed the flag value to `OFF`, or run the following command.
+
+```
+cmake -S . -B ./build -DENABLE_TESTING=OFF <additional-setup-flags>
+```
+
+To run the tests run from the command line 
+
+```
+    ctest ../build 
+```
