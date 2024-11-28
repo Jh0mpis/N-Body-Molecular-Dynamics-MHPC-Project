@@ -19,7 +19,7 @@ void ekin(mdsys_t *sys);
    * @param[in] x `One dimensional coordinate of the i th particle (i.e. x, y, or z)`
    * @param[in] boxby2 `Box dimension in the given direction`
    * @param[out] x `New position of the i th particle`
-   * @note `The results are saved to a mdsys_t struct member sys->ekin`
+   * @note `The results are saved to a mdsys_t struct member sys->epot`
    */
 static inline double pbc(double x, const double boxby2);
 
