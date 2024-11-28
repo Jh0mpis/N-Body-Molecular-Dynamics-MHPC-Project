@@ -73,15 +73,16 @@ This approach aimed to maximize performance.
 ---
 
 ## Results  
+To examine the performance of each approach, the code was excuted using 3 different input files corresponding to different number of atoms \(108, 2916, 78732\). The timing was collected, parsed, and then plotted in histograms. 
 
 ### Serial Performance 
-
-![serial timing](../timing/serial_timing_histogram.png)
-
+The runtime of the serial version of the code was plotted in a log scale histogram. The figure below shows the difference of timing for different number of atoms. As expected, the program needs more time as the size of the problem increases. The proptionality is linear due to the log scale   
+![alt text](../timing/serial_timing_histogram.png)
 ### OpenMPI Performance
-
-![mpi timing](../timing/mpi_timing_histogram.png)
-![mpi speed-up](../timing/mpi_speedup_histogram.png)
+The runtime was computed for varying number of process' from \(1\) to \(32\) on Leonardo. The results were then presented in two histograms, corresponding to the runtime and speedup vs number of processes for three problem size \(108, 2916, 78732\).
+![alt text](../timing/mpi_timing_histogram.png)
+![alt text](../timing/mpi_speedup_histogram.png)
+Observing the plots, it is clear that the runtime scales with the number of process'. The runtime histogram doesn't say much about the sample size of \(108\), however, by looking at the speedup plot, we immeditely notice the perforamnce of the code platus around at \(16\) processes, and the program is worst after that. Additionally, when using \(1\) to \(16\) process' the speed up increase is unsignificant for the sample sizes of \(2926\) and \(79732\), But, it becomes more noticable when using \(32\) process'
 
 ### OpenMP Performance
 
