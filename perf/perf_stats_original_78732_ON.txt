@@ -1,0 +1,16 @@
+# started on Thu Nov 28 11:46:06 2024
+
+
+ Performance counter stats for '../build/bin/main.x':
+
+ 3,360,711,395,308      cycles                                                                
+ 8,266,761,559,157      instructions                     #    2.46  insn per cycle            
+    99,987,306,871      cache-references                                                      
+     1,627,706,514      cache-misses                     #    1.63% of all cache refs         
+
+     793.525972095 seconds time elapsed
+
+     793.178978000 seconds user
+       0.146973000 seconds sys
+
+

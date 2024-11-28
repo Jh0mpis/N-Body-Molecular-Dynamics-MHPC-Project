@@ -1,0 +1,16 @@
+# started on Thu Nov 28 13:32:00 2024
+
+
+ Performance counter stats for '../build/bin/omp_main.x':
+
+   205,179,805,052      cycles                                                                
+   175,097,708,583      instructions                     #    0.85  insn per cycle            
+     2,507,932,294      cache-references                                                      
+       208,392,057      cache-misses                     #    8.31% of all cache refs         
+
+      13.426802925 seconds time elapsed
+
+     102.264052000 seconds user
+       0.269894000 seconds sys
+
+
