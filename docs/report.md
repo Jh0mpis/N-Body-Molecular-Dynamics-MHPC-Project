@@ -13,14 +13,13 @@ V(r) = 4 \varepsilon  \sum_{i\neq j}^{N} \{(\frac{\sigma}{r_{i,j}})^{6}-(\frac{\
 $$
 
 The particles are assumed to be trapped in a cubic. 
-The project was divided into 3 subtasks. Optimization, parallelizing with OpenMP and OpenMPI, and a hybrid version that involved mergin the two. Each member was assigned a task (Bellou ->Optimization, Andre-> parallelizing with OpenMp, Jhon->parallelizing with OpenMpi). 
-
+The main tasks of the project were divided into 3 subtasks. Optimization, parallelizing with OpenMP and OpenMPI, and a hybrid version that involved mergin the two. Each member was assigned a task (Bellou ->Optimization, Andre-> parallelizing with OpenMp, Jhon->parallelizing with OpenMpi). However, everyone contributed equally to the others parts. 
 
 ## Methodology
 
 ### Optimization 
 
-The optimization task involved refactoring the code into seperate files. Then, the expensive functions where replaced with less costly function. Additionally, variables where redefined using `C` keywords to help the compiler optimze the code, and expensive floating-point divisions where moved out of loops. Furthermore, Newton's third law was employed in the `force` function.    
+The optimization task involved, First, refactoring the provided code into logically seperated files that follow the structure described in the [`README.md`](../README.md). Also, the compututionally expensive math functions were replaced with less costly operations (eg. `pow()`, `sqrt()` with multiplications). Furthermore, invariant expressions were defined as `const`'s outside of `for` loops inside the `force` and `velverlet` functions. Moreover, compiler optimization flags were used to enhance the performance of the code. Additionally, Newton's third law of motion was utilized in the `force` function. In addition, the `verlet` 
 ### OpenMp 
 
 ### OpenMpi 
