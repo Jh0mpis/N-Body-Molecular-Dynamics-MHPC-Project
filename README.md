@@ -261,5 +261,8 @@ cmake -S . -B ./build -DENABLE_TESTING=OFF <additional-setup-flags>
 To run the tests run from the command line 
 
 ```
+    cd ./build
     ctest ../build 
 ```
+> [!IMPORTANT]
+> Make sure the `examples` folder contains the output data to be compared with the refrence data in `refrence`. Before running the tests, make sure to run `./main.x > examples/argon_#.dat` to get the output results first.
