@@ -14,6 +14,8 @@ This project is a N-Body molecular dynamic implementation using the `C` programm
 
 ## Index
 
+---
+
 - [Cloning the repository](#cloning-the-repository)
 - [Project folder architecture](#project-folder-architecture)
 - [Compile the project](#compile-the-project)
@@ -29,6 +31,8 @@ This project is a N-Body molecular dynamic implementation using the `C` programm
 
 ## Cloning the repository
 
+---
+
 The repository is public, so you can clone into your local using:
 
 ```
@@ -36,6 +40,8 @@ git clone https://github.com/Jh0mpis/N-Body-Molecular-Dynamics-MHPC-Project.git
 ```
 
 ## Project folder architecture
+
+---
 
 The location of the `main.c` file is in the root folder `./` along with the `CMakeLists.txt`, the project is split in several modules, the source code is inside of `./src` folder while the header files are included in `./include`. The project includes some example data for testing the outputs, these examples are inside the `./examples` folder and the reference data is inside `./reference` folder.
 
@@ -82,6 +88,8 @@ When you run the `cmake -S <source-fodler-path> -B <build-folder-path> <addition
 ```
 
 ## Compile the project
+
+---
 
 The project can be compiled using the `cmake` tool. The `CMakeLists.txt` is in the root folder (`./`). You can create the build folder running the following command in the root folder:
 
@@ -179,6 +187,8 @@ or with the ccmake tool.
 
 ## Run the project
 
+---
+
 ### Run with the multifile
 
 > [!WARNING]
@@ -190,19 +200,19 @@ or with the ccmake tool.
 In the project's root folder (`./`) there's a bash script called `run.sh`, you can use it in the following way
 
 ```
-bash ./run.sh <version> <file_name> <num_treads or process> <num_process>
+bash ./run.sh <project_version> <file_name> <num_treads or process> <num_process>
 ```
 
 where,
 
-- ***<version>*** is one of the following values
+- ***<project_version>*** is one of the following values
     - **serial**: For run the optimized serial version.
     - **mpi**: For run the optimized openMPI version.
     - **omp**: For run the optimized openMP verison.
     - **hybrid**: For run the hybrid openMPI + openMP version.
     - **latest**: For run the latest available option (depend on the enabled compilation flags).
     - **all**: For run all the available versions (depend on the enabled compilation flags).
-- ***<file_name> is the name of the input file inside of examples folder including the extension. You can use the word `all` for run with all the `.inp` files in examples folder.
+- ***<file_name>*** is the name of the input file inside of examples folder including the extension. You can use the word `all` for run with all the `.inp` files in examples folder.
 - ***<num_treads or num_process>*** the number of treads if openMP or the hybrid version is enabled, number of process if just openMPI is enabled.
 - ***<num_process>*** if the hybrid version is the target.
 
@@ -222,23 +232,25 @@ where ***<num_treads>*** is the number of threads that you want to use.
 
 ```
 cd examples
-mpirun -np <num_process> <build_folder-path>/bin/main.x < <file_name>
+mpirun -np <num_process> <build_folder_path>/bin/main.x < <file_name>
 ```
 
 where,
 
 - ***<num_process>*** is the number of process to use for the simulation.
-- ***<build-folder-path>*** is the relative path from `examples/` folder to the build folder.
+- ***<build_folder_path>*** is the relative path from `examples/` folder to the build folder.
 - ***<file_name>*** is the input file's name.
 
 **If openMPI is disabled**
 
 ```
 cd examples
-<build_folder-path>/bin/main.x < <file_name>
+<build_folder_path>/bin/main.x < <file_name>
 ```
 
-- ***<build-folder-path>*** is the relative path from `examples/` folder to the build folder.
+- ***<build_folder_path>*** is the relative path from `examples/` folder to the build folder.
 - ***<file_name>*** is the input file's name.
 
 ## Testing the project
+
+---
