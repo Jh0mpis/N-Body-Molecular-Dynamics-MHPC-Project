@@ -12,3 +12,4 @@ void azzero(double *d, const int n) {
         d[i] = 0.0;
     }
 }
+

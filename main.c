@@ -11,16 +11,64 @@
 #include "include/utilities.h"                // wallclock, azzero, pbc
 #include "include/cleanup.h"                  // Free the allocated stuff
 #include "include/simulate.h"                 // Run the simulation 
+#ifdef ENABLE_OPENMPI
+  #include <mpi.h>
+#endif
+#ifdef ENABLE_OPENMP
+#include <omp.h>
+#endif
 
 int main(int argc, char **argv) {
-    FILE *traj, *erg;
+    
     mdsys_t sys;
+    #ifdef ENABLE_OPENMPI
+      MPI_Init(&argc, &argv);
+      int rank, nps;
+
+      MPI_Comm_size(MPI_COMM_WORLD, &nps);
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+      sys.rank = rank;
+      sys.nps = nps;
+      sys.nthreads = 1;
+      
+      if(!sys.rank){
+        printf("Running with OpenMPI using %d process\n", sys.nps);
+        #ifndef ENABLE_OPENMP
+        printf("LJMD version %3.3f\n", LJMD_VERSION);
+        #endif
+      }
+    #endif
+
+    FILE *traj, *erg;
     double t_start;
 
-    printf("LJMD version %3.3f\n", LJMD_VERSION);
+
+    #ifdef ENABLE_OPENMP
+      #pragma omp parallel
+      {
+        int id_trhead = omp_get_thread_num();
+        if(!id_trhead){
+          sys.nthreads = omp_get_num_threads();
+          #ifdef ENABLE_OPENMPI
+          if(!rank){
+            printf("Running with OpenMP using %d threads\n", sys.nthreads);
+            printf("LJMD version %3.3f\n", LJMD_VERSION);
+          }
+          #else
+            printf("Running with OpenMP using %d threads\n", sys.nthreads);
+            printf("LJMD version %3.3f\n", LJMD_VERSION);
+          #endif
+        }
+      }
+    #endif
+
+    #if !defined (ENABLE_OPENMPI) && !defined (ENABLE_OPENMP)
+        printf("LJMD version %3.3f\n", LJMD_VERSION);
+    #endif
 
     t_start = wallclock();
-
+    
     // Initialize the system from input files
     const int nprint = read_input_files(&sys, &erg, &traj);
     if (nprint <= 0 ) return 1;
@@ -30,6 +78,10 @@ int main(int argc, char **argv) {
 
     // Deallocate
     clean(&sys, &erg, &traj);
+
+  #ifdef ENABLE_OPENMPI
+    MPI_Finalize();
+  #endif
 
     return 0;
 }
