@@ -6,7 +6,7 @@
 
 ##  Introduction 
 
-This project aims to optimize and parallelize a `C` program used for mollecular dynamics. This code simulates the dynamics of an N-Body system with classical particles trapped in cubic box with periodic boundary conditions, and interracting according to the Leonard-Jones potential. 
+The aim of this project is to optimize and parallelize a provided `C` program for molecular dynamics. It simulates the dynamics of an N-Body classical system using the Leonad-Jones potenial under periodic boundary conditions.  
 
 $$V(r) = 4 \varepsilon  \sum_{i\neq j}^{N} \{(\frac{\sigma}{r_{i,j}})^{6}-(\frac{\sigma}{r_{i,j}})^{12} \}$$
 
