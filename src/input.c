@@ -71,6 +71,26 @@ int read_input_files(mdsys_t *sys, FILE **erg, FILE **traj){
         sys->dt = atof(line);
         if (get_a_line(stdin, line)) return -1;
         nprint = atoi(line);
+      
+      #ifdef ENABLE_OPENMPI
+      }    
+      MPI_Bcast(&(sys->natoms), 1, MPI_INT, 0, MPI_COMM_WORLD);
+      MPI_Bcast(&(sys->mass), 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+      MPI_Bcast(&(sys->epsilon), 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+      MPI_Bcast(&(sys->sigma), 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+      MPI_Bcast(&(sys->rcut), 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+      MPI_Bcast(&(sys->box), 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+      MPI_Bcast(&(sys->dt), 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+      MPI_Bcast(&(sys->nsteps), 1, MPI_INT, 0, MPI_COMM_WORLD);
+      MPI_Bcast(&nprint, 1, MPI_INT, 0, MPI_COMM_WORLD);
+      sys->local_size = sys->natoms / sys->nps;
+      sys->offset = 0;
+      if(sys->rank < sys->natoms % sys->nps){
+        sys->local_size++;
+      }else{
+        sys->offset = sys->natoms % sys->nps;
+      }
+    #endif /* ifdef ENABLE_OPENMPI */
 
       // Allocate memory
       sys->rx = (double *)malloc(sys->natoms * sizeof(double));
