@@ -1,0 +1,6 @@
+# Method    ExecutionTime
+Serial      0.9394512177
+OpenMP      0.3830399513
+MPI         0.1398870945
+Hybrid      0.1728520393
+
