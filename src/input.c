@@ -71,6 +71,9 @@ int read_input_files(mdsys_t *sys, FILE **erg, FILE **traj){
         sys->dt = atof(line);
         if (get_a_line(stdin, line)) return -1;
         nprint = atoi(line);
+    #ifdef ENABLE_OPENMPI
+      }
+    #endif //ENABLE_OPENMPI
 
       // Allocate memory
       sys->rx = (double *)malloc(sys->natoms * sizeof(double));
@@ -120,4 +123,4 @@ int read_input_files(mdsys_t *sys, FILE **erg, FILE **traj){
     #endif //ENABLE_OPENMPI
 
       return nprint; // returning the printing steps
-}
+  }
