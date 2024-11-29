@@ -101,7 +101,7 @@ fi
 
 if [ $executable -eq 1 ]; then
   # File to check (passed as a parameter to the script)
-  file_to_check=${executables[$executable]}
+  file_to_check=../build/bin/${executables[$executable]}
 
   # Check if the file exists
   if [ -f "$file_to_check" ]; then
@@ -130,7 +130,7 @@ fi
 
 if [ $executable -eq 2 ]; then
   # File to check (passed as a parameter to the script)
-  file_to_check=${executables[$executable]}
+  file_to_check=../build/bin/${executables[$executable]}
 
   # Check if the file exists
   if [ -f "$file_to_check" ]; then
