@@ -71,7 +71,7 @@ int read_input_files(mdsys_t *sys, FILE **erg, FILE **traj){
         sys->dt = atof(line);
         if (get_a_line(stdin, line)) return -1;
         nprint = atoi(line);
-      
+
       #ifdef ENABLE_OPENMPI
       }    
       MPI_Bcast(&(sys->natoms), 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -140,4 +140,4 @@ int read_input_files(mdsys_t *sys, FILE **erg, FILE **traj){
     #endif //ENABLE_OPENMPI
 
       return nprint; // returning the printing steps
-}
+  }
